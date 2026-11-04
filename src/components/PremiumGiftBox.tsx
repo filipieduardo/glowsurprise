@@ -5,7 +5,7 @@ export type OpeningPhase = 'idle' | 'untie' | 'ribbons' | 'lift' | 'reveal'
 
 type Props = { phase: OpeningPhase; onOpen: () => void }
 
-const glints = Array.from({ length: 23 }, (_, i) => ({
+const glints = Array.from({ length: 15 }, (_, i) => ({
   x: ((i * 43 + 17) % 91) + 5,
   y: ((i * 31 + 23) % 87) + 4,
   size: 2 + (i % 4),
@@ -13,8 +13,8 @@ const glints = Array.from({ length: 23 }, (_, i) => ({
   duration: 3.5 + (i % 5) * 0.8,
 }))
 
-const bursts = Array.from({ length: 19 }, (_, i) => ({
-  a: i * (360 / 19),
+const bursts = Array.from({ length: 12 }, (_, i) => ({
+  a: i * (360 / 12),
   d: 105 + (i % 5) * 22,
   delay: (i % 6) * 0.06,
 }))
