@@ -11,7 +11,7 @@ fs.rmSync(outDir, { recursive: true, force: true })
 fs.mkdirSync(path.join(outDir, 'assets'), { recursive: true })
 
 // 1) Compile Tailwind -> a single stylesheet
-const css = fs.readFileSync('src/index.css', 'utf8') + '\n' + fs.readFileSync('src/glowsurprise.css', 'utf8') + '\n' + fs.readFileSync('src/glowsurprise-v2.css', 'utf8')
+const css = fs.readFileSync('src/index.css', 'utf8') + '\n' + fs.readFileSync('src/glowsurprise.css', 'utf8') + '\n' + fs.readFileSync('src/glowsurprise-v2.css', 'utf8') + '\n' + fs.readFileSync('src/glowsurprise-v3.css', 'utf8')
 const processed = await postcss([tailwind()]).process(css, { from: 'src/index.css' })
 fs.writeFileSync(path.join(outDir, 'assets', 'index.css'), processed.css)
 console.log('css ok:', processed.css.length, 'bytes')

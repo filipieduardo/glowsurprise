@@ -1,0 +1,299 @@
+/* GlowSurprise V3 — Ruby Noël.
+   The portrait composition is designed first for a phone screen; the gift is
+   physically tall, its bow genuinely unfurls, and no scene depends on fades. */
+.gs-app{
+  background:radial-gradient(ellipse 70% 45% at 50% 30%,rgba(51,92,70,.34),transparent 90%),
+  linear-gradient(155deg,#051912 0%,#0b2a1e 45%,#03120e 100%);
+}
+.gs3-hero{padding:0 9px 20px;max-width:none;min-height:calc(100svh - 128px);justify-content:center}
+.gs3-portrait{
+  position:relative;isolation:isolate;display:flex;flex-direction:column;
+  align-items:center;justify-content:space-between;
+  overflow:hidden;
+  width:min(100%,450px);aspect-ratio:9/16;min-height:610px;
+  padding:clamp(24px,4vw,40px) 17px 28px;
+  border:1px solid rgba(218,177,104,.44);
+  box-shadow:inset 0 0 0 7px rgba(14,41,30,.53),inset 0 0 0 8px rgba(220,179,99,.09),
+   0 20px 95px rgba(0,4,2,.54),0 0 60px rgba(152,86,29,.08);
+  background:
+    radial-gradient(ellipse 87% 43% at 50% 58%,rgba(199,146,76,.11),transparent 80%),
+    radial-gradient(ellipse 90% 64% at 50% 57%,rgba(20,67,47,.83),transparent 88%),
+    linear-gradient(165deg,#0c2d20 0%,#071b16 55%,#061711 100%);
+}
+.gs3-portrait::before{
+  position:absolute;inset:15px;content:"";z-index:-1;pointer-events:none;
+  border:1px solid rgba(213,177,110,.14);
+}
+.gs3-portrait::after{
+  content:"";position:absolute;width:110%;height:57%;left:-5%;top:22%;
+  background:radial-gradient(ellipse,rgba(147,64,44,.13),transparent 65%);
+  filter:blur(29px);pointer-events:none;z-index:-1;
+}
+.gs3-portrait-top{z-index:3;display:flex;align-items:center;flex-direction:column;width:100%}
+.gs3-ornament{width:78px;height:18px;display:flex;gap:10px;align-items:center;justify-content:center;color:#d5b77d;font-size:10px;opacity:.9}
+.gs3-ornament::before,.gs3-ornament::after{
+  content:"";display:block;width:33px;height:1px;background:linear-gradient(90deg,transparent,#d5b77d)
+}
+.gs3-ornament::after{transform:rotate(180deg)}
+.gs3-kicker{font-size:9px;letter-spacing:.31em;font-weight:600;text-transform:uppercase;color:#e2c994;margin:11px 0 7px}
+.gs3-hero-headline{
+  font:400 clamp(47px,9.8vw,68px)/.92 'Cormorant Garamond',serif;
+  max-width:350px;letter-spacing:-.028em;
+  margin:0;color:#fff4df;text-align:center;text-wrap:balance;
+}
+.gs3-hero-headline em{font-style:italic;color:#e8b77a}
+.gs3-hero-description{
+  color:#f0e3c8;font:400 12px/1.55 'DM Sans',sans-serif;
+  max-width:265px;text-align:center;margin:12px 0 0;opacity:.88;
+}
+.gs3-footer-actions{z-index:4;display:flex;flex-direction:column;align-items:center;gap:9px;width:100%;margin-top:-8px}
+.gs3-footer-actions .gs-primary-button{
+  background:linear-gradient(125deg,#e8c88f 0%,#fff0c5 48%,#ca9860 100%);
+  color:#2a231b;box-shadow:0 10px 30px rgba(3,11,8,.57),0 0 23px rgba(224,166,93,.12);
+  min-height:50px;font-size:11px;letter-spacing:.13em;
+  border-radius:2px;width:min(100%,280px);
+}
+.gs3-footer-actions .gs-primary-button:active{transform:scale(.98)}
+.gs3-footer-note{color:#e6d0a6;font:italic 18px 'Cormorant Garamond',serif;margin:1px 0 0}
+.gs3-tap-cue{color:#b6bb9f;letter-spacing:.2em;text-transform:uppercase;font-size:8px;margin:0 0 3px}
+
+.gs3-stage{position:relative;flex:1;width:100%;min-height:350px;display:grid;place-items:center;isolation:isolate;perspective:1100px}
+.gs3-backlight{
+  position:absolute;width:85%;aspect-ratio:1;top:36%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(236,196,119,.24),rgba(118,59,33,.06) 40%,transparent 70%);
+  filter:blur(18px);animation:gs3-glow-pulse 5s ease-in-out infinite;pointer-events:none;
+}
+.gs3-orbit{position:absolute;pointer-events:none;z-index:0;border-radius:50%;left:50%;top:48%;
+  transform:translate(-50%,-50%) rotate(-21deg);
+  border:1px solid rgba(235,192,119,.19)}
+.gs3-orbit-one{width:90%;height:76%}.gs3-orbit-two{width:73%;height:63%;border-color:rgba(219,191,121,.09);transform:translate(-50%,-50%) rotate(20deg)}
+.gs3-star-field{position:absolute;inset:0;z-index:1;pointer-events:none}
+.gs3-star-field i{position:absolute;border-radius:50%;background:#f9e2b7;box-shadow:0 0 8px 2px #f7cd7450;
+  animation:gs3-star-twinkle ease-in-out infinite;opacity:.6}
+.gs3-shadow{position:absolute;z-index:1;bottom:9%;width:62%;height:28px;border-radius:50%;background:rgba(0,0,0,.67);filter:blur(16px)}
+.gs3-gift-button{
+  position:relative;z-index:5;display:grid;place-items:center;border:0;background:none;padding:0;
+  height:min(100%,450px);min-height:365px;width:100%;color:#f6d6a2;touch-action:manipulation;
+}
+.gs3-gift-button:focus-visible{outline:2px solid #f2d59c;outline-offset:-4px;border-radius:16px}
+.gs3-gift{position:relative;transform-style:preserve-3d;width:310px;height:410px;
+  transform:translateY(10px) rotateY(-8deg) rotateX(3deg);animation:gs3-gift-hover 5.8s ease-in-out infinite;
+  filter:drop-shadow(0 20px 24px rgba(0,2,1,.45))}
+.gs3-box-back{position:absolute;top:141px;left:60px;width:213px;height:242px;background:#3d0713;border-radius:4px;z-index:2}
+.gs3-box-void{position:absolute;top:140px;left:61px;width:211px;height:41px;z-index:4;
+  background:linear-gradient(#19040a,#501721 69%,#22060f);box-shadow:inset 0 12px 24px #000b}
+.gs3-box-glow{position:absolute;top:130px;left:68px;width:204px;height:138px;z-index:4;pointer-events:none;
+  border-radius:45%;background:radial-gradient(ellipse,#fbe1a8,rgba(231,156,74,.6),transparent 72%);filter:blur(16px);opacity:0}
+.gs3-envelope{position:absolute;z-index:5;top:138px;left:84px;width:171px;height:233px;padding:10px;
+  border:1px solid rgba(220,202,152,.65);
+  background:linear-gradient(150deg,#fff7e2 0%,#e9d6b7 68%,#d6b58b 100%);color:#284437;
+  box-shadow:0 16px 26px rgba(23,5,9,.67);
+  transform:translateY(26px) scale(.76) rotate(-4deg);opacity:0}
+.gs3-envelope-inner{display:flex;flex-direction:column;justify-content:center;align-items:center;
+  border:1px solid #bca07575;gap:12px;width:100%;height:100%}
+.gs3-envelope-star{font-size:20px;color:#a48243}.gs3-envelope-small,.gs3-envelope-caption{
+  font:600 7px 'DM Sans',sans-serif;letter-spacing:.19em}
+.gs3-envelope-title{font:400 31px/.84 'Cormorant Garamond',serif;color:#203d31}
+.gs3-envelope-title em{font-weight:400;color:#a87b43}.gs3-envelope-line{width:43px;height:1px;background:#ac9261}
+.gs3-box-body{position:absolute;top:163px;left:60px;width:209px;height:220px;z-index:7;transform-style:preserve-3d}
+.gs3-box-right{position:absolute;left:calc(100% - 1px);top:7px;width:35px;height:208px;
+  background:linear-gradient(90deg,#360813,#741329 60%,#3c0817);
+  clip-path:polygon(0 0,100% 10%,100% 92%,0 100%);filter:brightness(.88)}
+.gs3-box-front{position:absolute;inset:0;overflow:hidden;border-radius:3px 3px 8px 7px;
+  border:1px solid #ca778051;
+  background:
+    linear-gradient(125deg,rgba(255,179,151,.22),transparent 30%,rgba(16,0,6,.52) 76%,rgba(255,96,123,.1)),
+    linear-gradient(100deg,#891b33 0%,#ab2f41 23%,#671324 71%,#a52a3f 100%);
+  box-shadow:inset 10px 6px 23px #f9a8a223,inset -18px -19px 33px #1304089d,0 6px 19px #0009}
+.gs3-velvet-shine{position:absolute;inset:0;opacity:.6;
+  background:repeating-linear-gradient(115deg,rgba(255,237,213,.038) 0 1px,transparent 1px 6px)}
+.gs3-box-inset{position:absolute;inset:13px;border:1px solid rgba(246,186,154,.18);pointer-events:none}
+.gs3-box-lower-edge{position:absolute;bottom:1px;left:2px;right:2px;height:2px;background:rgba(255,178,149,.28)}
+.gs3-band-vertical{position:absolute;top:0;bottom:0;left:calc(50% - 17px);width:34px;
+  background:linear-gradient(90deg,#865525,#fbe9b4 20%,#cca066 45%,#ffebc0 66%,#825222);
+  box-shadow:2px 2px 9px #25040d94,inset 3px 0 5px #fff8}
+.gs3-band-horizontal{position:absolute;top:43%;height:36px;left:0;right:0;
+  background:linear-gradient(180deg,#98602d,#ffeac0 24%,#c58d48 58%,#825023);
+  box-shadow:0 4px 9px #22040c9f}
+.gs3-box-monogram{position:absolute;z-index:2;top:49%;left:50%;transform:translate(-50%,-50%);
+  width:65px;height:65px;border-radius:50%;border:1px solid rgba(255,239,189,.92);
+  outline:1px solid rgba(101,48,23,.52);outline-offset:-7px;
+  background:radial-gradient(circle at 30% 22%,#fae7b1,#c29455 61%,#8b5b2b);
+  box-shadow:0 6px 12px #19040b9e;display:grid;place-items:center;color:#72213a;
+  font:600 23px 'Cormorant Garamond',serif}
+.gs3-box-monogram span span{font-size:10px;vertical-align:middle;margin:0 2px}
+.gs3-lid{position:absolute;z-index:9;top:113px;left:44px;width:235px;height:73px;transform-style:preserve-3d;
+  transform-origin:95% 80%;filter:drop-shadow(0 11px 8px #160206b3)}
+.gs3-lid-top{position:absolute;top:-1px;left:9px;right:6px;height:25px;
+  background:linear-gradient(160deg,#b53b4d,#651125);
+  clip-path:polygon(7% 0,94% 0,100% 100%,0 100%);border-top:1px solid #dc6877a8}
+.gs3-lid-front{position:absolute;top:19px;left:0;right:0;height:50px;border-radius:3px 3px 6px 5px;
+  border:1px solid rgba(222,117,135,.55);border-bottom:9px solid #510b1e;
+  background:linear-gradient(111deg,#a5273d,#751226 70%,#a72a43);
+  box-shadow:inset 6px 5px 12px rgba(255,205,174,.1);overflow:hidden}
+.gs3-lid-ribbon{position:absolute;top:0;bottom:0;left:calc(50% - 18px);width:36px;
+  background:linear-gradient(90deg,#8b5d27,#ffebba 27%,#c18d4b 70%,#6e461e)}
+.gs3-lid-edge{position:absolute;bottom:0;left:0;right:0;height:2px;background:#ecab9170}
+.gs3-lid-right{position:absolute;right:-14px;top:21px;width:15px;height:47px;background:linear-gradient(#4c0c1e,#71152b);
+  clip-path:polygon(0 0,100% 10%,100% 90%,0 100%)}
+.gs3-bow{position:absolute;z-index:11;top:56px;left:12px;width:285px;height:155px;pointer-events:none;
+  filter:drop-shadow(0 4px 7px #1f070b9c)}
+.gs3-bow svg{width:100%;height:100%;overflow:visible}
+.gs3-bow-loop-left,.gs3-bow-loop-right,.gs3-bow-tail-left,.gs3-bow-tail-right,.gs3-bow-knot{transform-box:fill-box}
+.gs3-bow-loop-left{transform-origin:90% 70%}.gs3-bow-loop-right{transform-origin:10% 70%}
+.gs3-bow-tail-left{transform-origin:85% 5%}.gs3-bow-tail-right{transform-origin:15% 5%}
+.gs3-bow-knot{transform-origin:center}
+.gs3-opening-caption{position:absolute;z-index:12;bottom:1%;left:0;right:0;text-align:center;
+  color:#e4c79c;font:italic 18px/1.2 'Cormorant Garamond',serif;min-height:25px;
+  text-shadow:0 3px 15px #06120d;pointer-events:none}
+.gs3-sparks{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:0}
+.gs3-sparks span{position:absolute;left:50%;top:48%;color:#f6d899;font-size:13px;opacity:0;
+  transform:rotate(var(--angle)) translateY(0)}
+/* The stages remain visually composed rather than disappearing in a crossfade. */
+.gs3-stage:not([data-phase=idle]) .gs3-gift{animation:none}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-loop-left{
+  animation:gs3-bow-left-open 1.05s cubic-bezier(.2,.5,.38,1) both}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-loop-right{
+  animation:gs3-bow-right-open 1.07s cubic-bezier(.2,.5,.38,1) both}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-tail-left{
+  animation:gs3-bow-tail-left-open 1.12s cubic-bezier(.2,.5,.38,1) both}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-tail-right{
+  animation:gs3-bow-tail-right-open 1.12s cubic-bezier(.2,.5,.38,1) both}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-knot{
+  animation:gs3-bow-knot-open .9s ease-out both}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-band-vertical{
+  animation:gs3-band-vertical-unravel .92s cubic-bezier(.18,.65,.35,1) both}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-band-horizontal{
+  animation:gs3-band-horizontal-unravel .96s cubic-bezier(.18,.65,.35,1) both}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-box-monogram{
+  animation:gs3-monogram-release .8s ease-out both}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-lid-ribbon{
+  animation:gs3-band-vertical-unravel .8s ease both}
+.gs3-stage:is([data-phase=lift],[data-phase=reveal]) .gs3-lid{
+  animation:gs3-lid-unhinge 1.28s cubic-bezier(.18,.69,.28,1) both}
+.gs3-stage:is([data-phase=lift],[data-phase=reveal]) .gs3-box-glow{
+  animation:gs3-glow-open 2s ease-out both}
+.gs3-stage[data-phase=reveal] .gs3-envelope{
+  animation:gs3-letter-rise 1.45s cubic-bezier(.19,.75,.25,1) both}
+.gs3-stage[data-phase=reveal] .gs3-sparks{opacity:1}
+.gs3-stage[data-phase=reveal] .gs3-sparks span{animation:gs3-spark-burst 1.36s cubic-bezier(.12,.47,.22,1) both}
+.gs3-stage[data-phase=reveal] .gs3-backlight{animation:gs3-halo-reveal 1.8s ease-out both}
+
+@keyframes gs3-gift-hover{
+  0%,100%{transform:translateY(10px) rotateY(-8deg) rotateX(3deg)}
+  50%{transform:translateY(-7px) rotateY(-5deg) rotateX(5deg)}
+}
+@keyframes gs3-star-twinkle{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:.9;transform:scale(1.3)}}
+@keyframes gs3-glow-pulse{50%{opacity:.8;transform:translate(-50%,-50%) scale(1.07)}}
+@keyframes gs3-bow-left-open{
+  0%{transform:translate(0,0) rotate(0) scaleX(1);opacity:1}
+  36%{transform:translate(-14px,3px) rotate(-14deg) scaleX(1.15);opacity:1}
+  72%{transform:translate(-30px,20px) rotate(-48deg) scaleX(1.6);opacity:.93}
+  100%{transform:translate(-75px,-42px) rotate(-94deg) scaleX(1.9);opacity:0}
+}
+@keyframes gs3-bow-right-open{
+  0%{transform:translate(0,0) rotate(0) scaleX(1);opacity:1}
+  36%{transform:translate(14px,3px) rotate(14deg) scaleX(1.15);opacity:1}
+  72%{transform:translate(30px,20px) rotate(48deg) scaleX(1.6);opacity:.93}
+  100%{transform:translate(75px,-42px) rotate(94deg) scaleX(1.9);opacity:0}
+}
+@keyframes gs3-bow-tail-left-open{
+  0%{transform:translate(0,0) rotate(0) scaleY(1);opacity:1}
+  55%{transform:translate(-28px,45px) rotate(37deg) scaleY(1.45);opacity:1}
+  100%{transform:translate(-115px,120px) rotate(92deg) scaleY(1.85);opacity:0}
+}
+@keyframes gs3-bow-tail-right-open{
+  0%{transform:translate(0,0) rotate(0) scaleY(1);opacity:1}
+  55%{transform:translate(28px,45px) rotate(-37deg) scaleY(1.45);opacity:1}
+  100%{transform:translate(115px,120px) rotate(-92deg) scaleY(1.85);opacity:0}
+}
+@keyframes gs3-bow-knot-open{0%{transform:scale(1);opacity:1}70%{transform:translateY(-5px) scale(.7);opacity:1}100%{transform:translateY(-50px) scale(.22);opacity:0}}
+@keyframes gs3-band-vertical-unravel{0%{opacity:1;transform:translate(0,0) scaleX(1)}45%{opacity:1;transform:translate(21px,12px) skew(-10deg) scaleX(.9)}100%{opacity:0;transform:translate(124px,250px) skew(-33deg) scaleX(.2)}}
+@keyframes gs3-band-horizontal-unravel{0%{opacity:1;transform:translateX(0) rotate(0)}50%{opacity:1;transform:translateX(-45px) rotate(-5deg)}100%{opacity:0;transform:translateX(-235px) rotate(-29deg)}}
+@keyframes gs3-monogram-release{to{opacity:0;transform:translate(75px,-120px) rotate(65deg) scale(.5)}}
+@keyframes gs3-lid-unhinge{
+  0%{transform:translate(0,0) rotate(0) rotateX(0);opacity:1}
+  28%{transform:translate(-5px,-37px) rotate(-4deg) rotateX(9deg);opacity:1}
+  63%{transform:translate(31px,-121px) rotate(16deg) rotateX(-34deg);opacity:1}
+  100%{transform:translate(105px,-205px) rotate(38deg) rotateX(-57deg);opacity:0}
+}
+@keyframes gs3-glow-open{0%{opacity:0;transform:scale(.5)}22%{opacity:.95;transform:scale(1)}70%{opacity:.8;transform:scale(2)}100%{opacity:0;transform:scale(2.5)}}
+@keyframes gs3-letter-rise{
+  0%{transform:translateY(26px) scale(.76) rotate(-4deg);opacity:0}
+  18%{transform:translateY(-13px) scale(.82) rotate(-2deg);opacity:1}
+  78%{transform:translateY(-190px) scale(1.04) rotate(1deg);opacity:1}
+  100%{transform:translateY(-183px) scale(1.08) rotate(0);opacity:1}
+}
+@keyframes gs3-spark-burst{
+  0%{opacity:0;transform:rotate(var(--angle)) translateY(0) scale(.5)}
+  22%{opacity:1}
+  100%{opacity:0;transform:rotate(var(--angle)) translateY(calc(-1 * var(--distance))) scale(1.75)}
+}
+@keyframes gs3-halo-reveal{0%{opacity:.6}100%{opacity:0;transform:translate(-50%,-50%) scale(1.75)}}
+
+/* Every reveal is a portrait, not a landscape card with unused margins. */
+.gs3-letter-scene{padding-inline:10px;min-height:calc(100svh - 126px)}
+.gs3-letter-scene .gs-letter-sheet{
+  width:min(87vw,395px);aspect-ratio:9/16;height:auto;min-height:0;
+  padding:clamp(29px,5vw,43px) clamp(23px,5vw,37px) 28px;
+  border:1px solid #f5e3b7;
+}
+.gs3-letter-scene .gs-letter-for{margin-top:clamp(15px,4vh,39px)}
+.gs3-letter-scene .gs-letter-message{line-height:1.32;font-size:clamp(19px,4.6vw,26px);
+  max-height:40%;overflow-y:auto;scrollbar-width:thin;flex-shrink:1}
+.gs3-letter-scene .gs-letter-sign{margin:8px 0 10px}
+.gs3-letter-scene .gs-letter-bottom{font-size:8px}
+.gs3-memory-scene .gs2-memory-frame{width:min(88vw,420px);aspect-ratio:9/16}
+.gs3-memory-scene .gs2-memory-inner{border:1px solid rgba(255,241,194,.15)}
+.gs3-memory-scene .gs2-memory-frame::after{
+  content:"";position:absolute;inset:-12px;border:1px solid rgba(225,194,129,.14);pointer-events:none;
+}
+.gs3-memory-scene .gs2-memory-frame{background:linear-gradient(140deg,#fbe1a8,#90622f,#f7deaa,#5f3b21)}
+.gs3-memory-scene .gs2-memory-placeholder{background:
+  radial-gradient(circle at 50% 30%,rgba(186,57,76,.3),transparent 48%),
+  linear-gradient(155deg,#234a39,#071b15)}
+.gs3-finale-scene{width:min(100%,440px);min-height:calc(100svh - 126px);margin:auto;
+  border-left:1px solid rgba(210,180,120,.13);border-right:1px solid rgba(210,180,120,.13);
+  background:radial-gradient(circle at 50% 42%,rgba(169,57,73,.12),transparent 55%)}
+
+/* Full-width immersive vertical composition on phones. */
+@media(max-width:600px){
+  .gs-header{padding:13px 17px;min-height:59px}
+  .gs-footer{padding:12px 16px;min-height:40px}
+  .gs-main{min-height:calc(100svh - 101px)}
+  .gs3-hero{min-height:calc(100svh - 101px);padding:0 5px 10px}
+  .gs3-portrait{width:100%;min-height:610px;padding:26px 14px 23px;aspect-ratio:9/16}
+  .gs3-hero-headline{font-size:clamp(45px,11.5vw,60px)}
+  .gs3-stage{min-height:350px}
+  .gs3-gift-button{min-height:350px}
+  .gs3-gift{transform:translateY(12px) rotateY(-8deg) rotateX(3deg) scale(.92);
+    animation:gs3-mobile-hover 5.8s ease-in-out infinite}
+  .gs3-stage:not([data-phase=idle]) .gs3-gift{transform:translateY(12px) rotateY(-8deg) rotateX(3deg) scale(.92)}
+  .gs3-footer-actions{margin-top:0}
+  .gs3-footer-actions .gs-primary-button{min-height:48px}
+  .gs3-letter-scene .gs-letter-sheet{width:min(89vw,385px)}
+}
+@keyframes gs3-mobile-hover{
+  0%,100%{transform:translateY(12px) rotateY(-8deg) rotateX(3deg) scale(.92)}
+  50%{transform:translateY(-4px) rotateY(-5deg) rotateX(5deg) scale(.92)}
+}
+@media(max-width:365px){
+  .gs3-portrait{padding:18px 10px 17px;min-height:576px}
+  .gs3-kicker{font-size:8px;margin:7px 0}
+  .gs3-hero-headline{font-size:43px}
+  .gs3-hero-description{font-size:11px;margin-top:8px}
+  .gs3-stage,.gs3-gift-button{min-height:330px}
+  .gs3-gift{transform:translateY(8px) rotateY(-8deg) rotateX(3deg) scale(.83)}
+  .gs3-stage:not([data-phase=idle]) .gs3-gift{transform:translateY(8px) rotateY(-8deg) rotateX(3deg) scale(.83)}
+  .gs3-footer-actions .gs-primary-button{min-height:45px;font-size:10px}
+}
+@media(max-height:720px) and (max-width:600px){
+  .gs3-portrait{min-height:600px}
+  .gs3-stage{min-height:350px}
+}
+/* Honor reduced-motion settings; gift opens instantly instead of animating. */
+@media(prefers-reduced-motion:reduce){
+  .gs3-stage *, .gs3-stage *::before,.gs3-stage *::after,.gs3-gift,
+  .gs3-portrait{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
