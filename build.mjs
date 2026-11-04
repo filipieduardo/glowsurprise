@@ -48,9 +48,9 @@ const html = `<!doctype html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#120d18" />
-    <meta name="description" content="A little something, sealed for you." />
-    <title>Birthday Experience</title>
+    <meta name="theme-color" content="#081e1a" />
+    <meta name="description" content="GlowSurprise by GlowBauble — a magical Christmas gift, made personal." />
+    <title>GlowSurprise™ | A Magical Christmas Gift</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300..700&family=Caveat:wght@400..700&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
