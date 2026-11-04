@@ -5,6 +5,7 @@ import PremiumGiftBox from './components/PremiumGiftBox'
 import type { OpeningPhase } from './components/PremiumGiftBox'
 import './glowsurprise-v5.css'
 import './glowsurprise-v6.css'
+import './glowsurprise-v7.css'
 
 type Scene = 'gift' | 'letter' | 'memories' | 'final'
 type Uploaded = { url: string; name: string }
@@ -30,29 +31,6 @@ function Star({ size = 22 }: { size?: number }) {
     <path d="M12 0c.9 7.3 4.7 11.1 12 12-7.3.9-11.1 4.7-12 12C11.1 16.7 7.3 12.9 0 12 7.3 11.1 11.1 7.3 12 0Z" />
   </svg>
 }
-function Garland() {
-  const needles = Array.from({ length: 23 }, (_, i) => ({ x: 4 + i * 18, y: 34 + Math.sin(i / 3) * 11 }))
-  return <svg className="gs5-garland" viewBox="0 0 430 110" aria-hidden="true" preserveAspectRatio="xMidYMin slice">
-    <defs>
-      <linearGradient id="gs5-needle" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#477659"/><stop offset="1" stopColor="#133e30"/></linearGradient>
-      <radialGradient id="gs5-bulb"><stop stopColor="#fff4cb"/><stop offset=".4" stopColor="#f5c46d"/><stop offset="1" stopColor="#c77d32"/></radialGradient>
-    </defs>
-    <path d="M-15 24 Q100 73 220 45 Q325 20 445 36" stroke="#325441" strokeWidth="11" fill="none"/>
-    <path d="M-15 19 Q100 67 220 41 Q325 16 445 32" stroke="#54765a" strokeWidth="2" fill="none"/>
-    {needles.map((v, i) => <g key={i} transform={'translate(' + v.x + ' ' + v.y + ') rotate(' + (i < 12 ? 14 : -8) + ')'}>
-      <path d="M0 0 Q-27 -8 -36 -33 Q-11 -27 6 -3" fill="url(#gs5-needle)"/>
-      <path d="M0 0 Q-23 9 -27 29 Q-6 19 7 2" fill="#244c38"/>
-      <path d="M0 0 Q15 -22 26 -25 Q25 -5 8 5" fill="#2b593f"/>
-    </g>)}
-    {[34,103,173,244,309,377].map((x,i) => <g key={x}>
-      <path d={'M' + x + ' 40 v' + (16 + i % 3 * 4)} stroke="#d9b97d" strokeWidth="1"/>
-      <circle cx={x} cy={62 + i % 3 * 4} r={i % 2 ? 4 : 5.2} fill="url(#gs5-bulb)" className="gs5-fairy-light"/>
-    </g>)}
-    <circle cx="367" cy="47" r="16" fill="#8c2434" stroke="#d7ab6c" strokeWidth="1.5"/>
-    <path d="M367 49l3 6-3-2-3 2 3-6" fill="#efcc91"/>
-  </svg>
-}
-
 function Snowfall() {
   return <div className="gs5-snow" aria-hidden="true">
     {flakes.map((f,i) => <span key={i} className={f.front ? 'gs5-snow-near' : 'gs5-snow-far'}
@@ -204,7 +182,7 @@ export default function GlowSurprise() {
       <AnimatePresence mode="wait">
         {scene==='gift' && <motion.section key="gift" className="gs5-experience gs5-opening" initial={{y:25,scale:.98}} animate={{y:0,scale:1}} exit={{y:-40,scale:1.05}} transition={{duration:.6,ease:[.16,.75,.2,1]}}>
           <div className="gs5-world">
-            <Garland/>
+            
             <div className="gs5-world-top">
               <p className="gs5-eyebrow">A CHRISTMAS SURPRISE · MADE PERSONAL</p>
               <h1>Unwrap a little<br/><em>Christmas magic.</em></h1>
@@ -274,7 +252,7 @@ export default function GlowSurprise() {
           <button type="button" className="gs5-primary" onClick={()=>go('final')}>One last little surprise <span aria-hidden="true">↗</span></button>
         </motion.section>}
         {scene==='final'&&<motion.section key="final" className="gs5-experience gs5-finale" initial={{y:80,scale:.89}} animate={{y:0,scale:1}} exit={{y:-50}} transition={{duration:.85}}>
-          <Garland/>
+          
           <div className="gs5-finale-wreath"><span>✧</span></div>
           <p className="gs5-eyebrow">FROM MY HEART TO YOURS</p>
           <h2>The most beautiful gifts<br/><em>stay with us.</em></h2>
