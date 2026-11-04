@@ -3,8 +3,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import type { CSSProperties, ChangeEvent, TouchEvent } from 'react'
 import PremiumGiftBox from './components/PremiumGiftBox'
 import type { OpeningPhase } from './components/PremiumGiftBox'
-import './glowsurprise-v2.css'
 import './glowsurprise.css'
+import './glowsurprise-v2.css'
 
 type Scene = 'gift' | 'letter' | 'memories' | 'final'
 type Photo = { url: string; name: string }
