@@ -60,7 +60,7 @@ button:disabled{cursor:default}
 .gs5-gift-ground{position:absolute;bottom:11%;height:26px;width:205px;border-radius:50%;background:#0009;filter:blur(15px)}
 .gs5-gift-hit{display:grid;place-items:center;position:relative;z-index:5;width:100%;min-height:286px;height:100%;background:none;border:0;padding:0;touch-action:manipulation}
 .gs5-gift{position:relative;width:278px;height:278px;transform-origin:50% 58%;animation:gs5-float 5.7s ease-in-out infinite;filter:drop-shadow(0 20px 20px #0006)}
-.gs5-box-face{position:absolute;z-index:6;left:36px;top:86px;width:206px;height:187px;border-radius:3px 3px 7px 7px;overflow:hidden;
+.gs5-box-face{position:absolute;z-index:6;left:36px;top:71px;width:206px;height:206px;border-radius:3px 3px 7px 7px;overflow:hidden;
  background:linear-gradient(109deg,#b0394b 0%,#9e233c 24%,#721b33 76%,#a32d46 100%);
  border:1px solid #db667358;box-shadow:inset 10px 5px 18px #ffd3b620,inset -15px -15px 22px #20010f9a,0 8px 16px #0009}
 .gs5-box-face::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.45;background:repeating-linear-gradient(110deg,#fff3ed08 0 1px,transparent 1px 7px)}
