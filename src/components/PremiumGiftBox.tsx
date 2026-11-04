@@ -63,13 +63,15 @@ export default function PremiumGiftBox({ phase, onOpen }: Props) {
           </div>
 
           <div className="gs3-box-body">
-            <div className="gs3-box-right" />
             <div className="gs3-box-front">
               <div className="gs3-velvet-shine" />
               <div className="gs3-box-inset" />
               <div className="gs3-band-horizontal" />
               <div className="gs3-band-vertical" />
-              <div className="gs3-box-monogram"><span>G<span>✦</span>S</span></div>
+              <div className="gs3-box-monogram" aria-label="GlowSurprise">
+                <span className="gs4-seal-emblem">✦</span>
+                <span className="gs4-seal-brand">GLOW<br/>SURPRISE</span>
+              </div>
               <div className="gs3-box-lower-edge" />
             </div>
           </div>
@@ -80,7 +82,7 @@ export default function PremiumGiftBox({ phase, onOpen }: Props) {
               <span className="gs3-lid-ribbon" />
               <span className="gs3-lid-edge" />
             </div>
-            <div className="gs3-lid-right" />
+
           </div>
 
           <div className="gs3-bow">
@@ -98,10 +100,31 @@ export default function PremiumGiftBox({ phase, onOpen }: Props) {
                   <stop offset=".5" stopColor="#c59a55" />
                   <stop offset="1" stopColor="#765025" />
                 </linearGradient>
+                <linearGradient id="gs4-unfurl-shine" x1="0" y1="0" x2="1" y2=".5">
+                  <stop offset="0" stopColor="#8d562a"/>
+                  <stop offset=".22" stopColor="#fff0c0"/>
+                  <stop offset=".48" stopColor="#cf9851"/>
+                  <stop offset=".72" stopColor="#f9dfa4"/>
+                  <stop offset="1" stopColor="#93632e"/>
+                </linearGradient>
                 <filter id="gs3-silk-shadow" x="-30%" y="-40%" width="160%" height="180%">
                   <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#240d0c" floodOpacity=".52"/>
                 </filter>
               </defs>
+              <g className="gs4-unfurl-ribbons" filter="url(#gs3-silk-shadow)">
+                <path className="gs4-silk-trail gs4-silk-trail-left"
+                  d="M178 97 C146 95 138 107 125 118 C102 137 71 129 46 143 C20 158 -3 194 -39 217"
+                  fill="none" stroke="url(#gs4-unfurl-shine)" strokeWidth="23" strokeLinecap="butt"/>
+                <path className="gs4-silk-trail-highlight gs4-silk-trail-left"
+                  d="M178 95 C147 93 138 105 125 116 C101 135 69 127 45 141 C19 156 -4 192 -39 215"
+                  fill="none" stroke="#ffedb8" strokeWidth="2.4" strokeLinecap="round" opacity=".65"/>
+                <path className="gs4-silk-trail gs4-silk-trail-right"
+                  d="M182 98 C221 93 240 104 252 120 C269 145 303 132 324 149 C353 171 373 197 408 215"
+                  fill="none" stroke="url(#gs4-unfurl-shine)" strokeWidth="23" strokeLinecap="butt"/>
+                <path className="gs4-silk-trail-highlight gs4-silk-trail-right"
+                  d="M183 95 C222 90 240 102 253 118 C270 142 304 130 325 147 C354 169 374 195 408 213"
+                  fill="none" stroke="#ffedb8" strokeWidth="2.4" strokeLinecap="round" opacity=".65"/>
+              </g>
               <g className="gs3-bow-loop-left" filter="url(#gs3-silk-shadow)">
                 <path d="M178 98 C138 68 112 27 66 33 C33 36 23 74 44 95 C69 120 129 108 178 98Z" fill="url(#gs3-silk)" stroke="#f4d995" strokeWidth="2.2"/>
                 <path d="M172 97 C132 80 82 58 57 76 C81 55 125 84 172 97Z" fill="#fff1c1" opacity=".44"/>
