@@ -1,296 +1,143 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, CSSProperties, TouchEvent } from 'react'
+import { AnimatePresence, motion, MotionConfig, useReducedMotion } from 'motion/react'
 import PremiumGiftBox from './components/PremiumGiftBox'
-import type { OpeningPhase } from './components/PremiumGiftBox'
-import './glowsurprise-v5.css'
-import './glowsurprise-v6.css'
-import './glowsurprise-v7.css'
+import content from './content.json'
+import {embeddedGift,preparePhoto,readDraft,writeDraft,exportGift} from './lib/giftFiles'
+import type {GiftMemory,Draft} from './lib/giftFiles'
+import {loadGiftLayers,loadGiftOpening} from './lib/giftAssets'
+import './cinematic.css'
 
-type Scene = 'gift' | 'letter' | 'memories' | 'final'
-type Uploaded = { url: string; name: string }
-type Memory = { kind: 'image' | 'video'; url: string; name: string }
-const demoStories = [
-  { title: 'The moments that matter', subtitle: 'Every picture tells a little story.' },
-  { title: 'Our favourite chapters', subtitle: 'The laughs, the little things, the love.' },
-  { title: 'More magic to come', subtitle: 'A new chapter begins this Christmas.' },
-]
-
-const flakes = Array.from({ length: 66 }, (_, i) => ({
-  left: ((i * 73 + 17) % 101) + '%',
-  delay: (-((i * 41) % 127) / 10) + 's',
-  duration: (8 + (i % 11) * 1.25) + 's',
-  size: (i % 9 === 0 ? 6 : i % 3 === 0 ? 3.5 : 2) + 'px',
-  drift: (((i * 19) % 70) - 35) + 'px',
-  opacity: .25 + ((i * 13) % 35) / 65,
-  front: i % 7 === 0,
-}))
-
-function Star({ size = 22 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-    <path d="M12 0c.9 7.3 4.7 11.1 12 12-7.3.9-11.1 4.7-12 12C11.1 16.7 7.3 12.9 0 12 7.3 11.1 11.1 7.3 12 0Z" />
-  </svg>
+type Scene = 'gift'|'letter'|'memories'|'final'
+type Memory = GiftMemory
+const copy=content.glowsurprise
+const flakes=Array.from({length:32},(_,i)=>({left:`${(i*73+17)%100}%`,delay:`-${i%13}s`,duration:`${12+i%9*2}s`,size:i%8===0?5:i%3===0?2:1,drift:`${(i*17)%65-32}px`}))
+function Snow({paused}:{paused:boolean}) {return <div className={'snow '+(paused?'paused':'')} aria-hidden="true">{flakes.map((f,i)=><i key={i} style={{left:f.left,width:f.size,height:f.size,animationDelay:f.delay,animationDuration:f.duration,'--drift':f.drift,opacity:i%8===0?.28:.42} as CSSProperties}/>)}</div>}
+function Star(){return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 1 14.3 9.7 23 12l-8.7 2.3L12 23l-2.3-8.7L1 12l8.7-2.3L12 1Z" stroke="currentColor" strokeWidth=".8"/></svg>}
+function DemoArt({index}:{index:number}) {
+  return <div className={'memory-art art-'+index} role="img" aria-label="Abstract winter landscape, sample artwork"><div className="art-moon"/><div className="art-ridge ridge-back"/><div className="art-ridge ridge-front"/><span className="art-caption">A PLACE FOR<br/><em>your memories.</em></span><small>SAMPLE ARTWORK</small></div>
 }
-function Snowfall() {
-  return <div className="gs5-snow" aria-hidden="true">
-    {flakes.map((f,i) => <span key={i} className={f.front ? 'gs5-snow-near' : 'gs5-snow-far'}
-      style={{ left:f.left,animationDelay:f.delay,animationDuration:f.duration,width:f.size,height:f.size,
-        opacity:f.opacity,'--drift':f.drift } as CSSProperties}/>)}
-  </div>
-}
-
-function WinterMemoryArt({ variant = 0 }: { variant?: number }) {
-  return <svg className="gs5-memory-art" viewBox="0 0 300 390" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustrated snowy Christmas evening with a lit cabin and evergreen trees">
-    <defs>
-      <linearGradient id="gs5-sky" x1="0" y1="0" x2="0" y2="1"><stop stopColor={variant===1 ? '#203b55' : '#153e4a'}/><stop offset=".8" stopColor={variant===2?'#674046':'#46646b'}/><stop offset="1" stopColor="#b59a80"/></linearGradient>
-      <radialGradient id="gs5-house-light"><stop stopColor="#ffefb7"/><stop offset=".7" stopColor="#d9984b"/><stop offset="1" stopColor="#9d5e35"/></radialGradient>
-    </defs>
-    <rect width="300" height="390" fill="url(#gs5-sky)" />
-    <circle cx="228" cy="78" r="30" fill="#fff0cf" opacity=".85"/>
-    <circle cx="228" cy="78" r="48" fill="#fff0cf" opacity=".1"/>
-    {[30,62,104,160,203,254,286].map((x,i)=><g key={x} transform={'translate(' + x + ' ' + (204+i%3*12) + ')'}>
-      <path d="M0 -112 L-41 0 H41Z" fill={i%2 ? '#122f32' : '#173e3b'}/>
-      <path d="M0 -99 L-31 -15 M0 -69 L28 -8" stroke="#e3eeea" strokeWidth="3" opacity=".58"/>
-      <path d="M-33 -20 L0 -91 L34 -19" fill="none" stroke="#e8ede6" strokeWidth="2.4" opacity=".75"/>
-      <rect x="-5" y="-10" width="10" height="34" fill="#2d2923"/>
-    </g>)}
-    <path d="M0 235 Q58 205 111 233 Q179 204 300 241V390H0Z" fill="#b4cfca"/>
-    <path d="M0 278 Q80 252 161 278 Q235 248 300 278V390H0Z" fill="#edf1e5"/>
-    <g transform="translate(88 194)">
-      <rect x="0" y="30" width="131" height="110" fill="#6e3430"/>
-      <path d="M-17 35 L63 -12 L151 35Z" fill="#423533"/>
-      <path d="M-10 34 L63 -10 L144 34" fill="none" stroke="#f3f2e7" strokeWidth="9" strokeLinejoin="round"/>
-      <rect x="18" y="57" width="35" height="38" fill="url(#gs5-house-light)"/>
-      <rect x="76" y="57" width="36" height="38" fill="url(#gs5-house-light)"/>
-      <path d="M35 56V96 M18 75H53 M94 56V96 M76 75H112" stroke="#5e362a" strokeWidth="4"/>
-      <rect x="55" y="99" width="26" height="41" fill="#3b2828"/>
-      <rect x="103" y="-15" width="14" height="36" fill="#634238"/>
-      <path d="M103 -13 L102 -21 L120 -21 L117 -13" fill="#e7e9de"/>
-    </g>
-    <g transform="translate(35 243)">
-      <path d="M0 -98 L-35 -11 H35Z" fill="#173b30"/>
-      <path d="M0 -74 L-27 -1 H27Z" fill="#215240"/>
-      <path d="M0 -50 L-31 24 H31Z" fill="#1d4b3a"/>
-      {[[-2,-51],[8,-29],[-13,-16],[15,7],[-2,3],[5,-70]].map((p,i) =>
-        <circle key={i} cx={p[0]} cy={p[1]} r="3.4" fill={i%2?'#e8b65f':'#b52b3f'}/>)}
-      <path d="M0 -106 L3 -98 L11 -97 L5 -91 L7 -83 L0 -88 L-7 -83 L-5 -91 L-11 -97 L-3 -98Z" fill="#fce5a8"/>
-    </g>
-    {Array.from({length:38},(_,i)=><circle key={i} cx={(i*61+13)%300} cy={(i*47+11)%390} r={i%5===0?2:1.1} fill="#fffcf3" opacity={.45+i%4*.12}/>)}
-    <path d="M0 350 Q100 316 185 346 Q244 328 300 341V390H0Z" fill="#fbf7ed"/>
-  </svg>
-}
-
-export default function GlowSurprise() {
-  const [scene,setScene] = useState<Scene>('gift')
-  const [phase,setPhase] = useState<OpeningPhase>('ready')
-  const [editorOpen,setEditorOpen] = useState(false)
-  const [recipient,setRecipient] = useState('Someone special')
-  const [sender,setSender] = useState('With all my love')
-  const [message,setMessage] = useState('Of all the moments this year, my favourites have you in them. Wishing you a Christmas as beautiful as the memories we share.')
-  const [photos,setPhotos] = useState<Uploaded[]>([])
-  const [video,setVideo] = useState<Uploaded | null>(null)
-  const [memoryIndex,setMemoryIndex] = useState(0)
-  const [feedback,setFeedback] = useState('')
-  const photoInput = useRef<HTMLInputElement>(null)
-  const videoInput = useRef<HTMLInputElement>(null)
-  const mediaUrls = useRef<Set<string>>(new Set())
-  const timers = useRef<number[]>([])
-  const swipeX = useRef<{x:number;y:number}|null>(null)
-  const memories:Memory[] = useMemo(()=>[
-    ...photos.map(p=>({kind:'image' as const,url:p.url,name:p.name})),
-    ...(video ? [{kind:'video' as const,url:video.url,name:video.name}] : []),
-  ],[photos,video])
-  const total = memories.length || demoStories.length
-  const active = ((memoryIndex%total)+total)%total
-  const demo = !memories.length
-
-  useEffect(()=>{
-    const urls = mediaUrls.current
-    return ()=>{timers.current.forEach(clearTimeout);urls.forEach(URL.revokeObjectURL);urls.clear()}
-  },[])
-
-  function newUrl(file:File) {
-    const url = URL.createObjectURL(file)
-    mediaUrls.current.add(url)
-    return url
-  }
-  function discard(url:string) {
-    URL.revokeObjectURL(url)
-    mediaUrls.current.delete(url)
-  }
-  function handlePhotos(event:ChangeEvent<HTMLInputElement>) {
-    const selected = Array.from(event.target.files || [])
-    if(!selected.length) return
-    const valid = selected.filter(f=>f.type.startsWith('image/') && f.size<=10*1024*1024).slice(0,10)
-    if(!valid.length) {setFeedback('Please choose photos smaller than 10 MB each.');return}
-    photos.forEach(p=>discard(p.url))
-    setPhotos(valid.map(f=>({url:newUrl(f),name:f.name})))
-    setMemoryIndex(0)
-    setFeedback(valid.length < selected.length ? 'Some files were skipped. You can use up to 10 photos.' : 'Your photos are ready to preview.')
-    event.target.value=''
-  }
-  function handleVideo(event:ChangeEvent<HTMLInputElement>) {
-    const file=event.target.files?.[0]
-    if(!file)return
-    if(!file.type.startsWith('video/') || file.size>20*1024*1024){
-      setFeedback('Please choose one video under 20 MB.')
-      return
+export default function GlowSurprise(){
+  const reduced=!!useReducedMotion()
+  const [scene,setScene]=useState<Scene>('gift'),[opening,setOpening]=useState(false)
+  const [openingUrl,setOpeningUrl]=useState(''),[layersReady,setLayersReady]=useState(false),[preparing,setPreparing]=useState(false)
+  const openingRun=useRef(0)
+  const [editor,setEditor]=useState(false),[paused,setPaused]=useState(false)
+  const [recipient,setRecipient]=useState(embeddedGift?.recipient||copy.recipient),[sender,setSender]=useState(embeddedGift?.sender||copy.sender),[message,setMessage]=useState(embeddedGift?.message||copy.message)
+  const [media,setMedia]=useState<Memory[]>(embeddedGift?.media||[]),[index,setIndex]=useState(0),[feedback,setFeedback]=useState('')
+  const [busy,setBusy]=useState(false),[savedDraft,setSavedDraft]=useState<Draft|null>(null),[direction,setDirection]=useState(1)
+  const received=!!embeddedGift?.received
+  const dialog=useRef<HTMLDialogElement>(null),opener=useRef<HTMLElement|null>(null),title=useRef<HTMLHeadingElement>(null)
+  const timer=useRef<ReturnType<typeof setTimeout>|null>(null),urls=useRef(new Set<string>())
+  const photoInput=useRef<HTMLInputElement>(null),videoInput=useRef<HTMLInputElement>(null)
+  const swipe=useRef<{x:number;y:number}|null>(null)
+  const demo=media.length===0,total=demo?copy.demoStories.length:media.length,active=index%total
+  const current=media[active]
+  useEffect(()=>{const all=urls.current;return()=>{if(timer.current)clearTimeout(timer.current);all.forEach(URL.revokeObjectURL)}},[])
+  useEffect(()=>{if(!received)readDraft().then(d=>setSavedDraft(d||null)).catch(()=>{})},[received])
+  useEffect(()=>{const before=document.body.style.overflow;if(editor)document.body.style.overflow='hidden';return()=>{document.body.style.overflow=before}},[editor])
+  useEffect(()=>{if(editor){opener.current=document.activeElement as HTMLElement;dialog.current?.showModal()}else if(dialog.current?.open){dialog.current.close();opener.current?.focus()}},[editor])
+  useEffect(()=>{if(scene!=='gift')title.current?.focus()},[scene])
+  function go(next:Scene){setScene(next);window.scrollTo({top:0,behavior:'instant'})}
+  function restart(){openingRun.current++;if(openingUrl){URL.revokeObjectURL(openingUrl);urls.current.delete(openingUrl);setOpeningUrl('')}setPreparing(false);if(timer.current)clearTimeout(timer.current);setOpening(false);setIndex(0);go('gift')}
+  async function unwrap(){
+    if(opening||preparing)return
+    const run=++openingRun.current;setPreparing(true)
+    if(!reduced){
+      let url=''
+      try{
+        const blob=await loadGiftOpening()
+        if(run!==openingRun.current)return
+        url=URL.createObjectURL(blob);urls.current.add(url)
+        const image=new Image();image.src=url;await image.decode()
+        if(run!==openingRun.current){URL.revokeObjectURL(url);urls.current.delete(url);return}
+        setOpeningUrl(url)
+      }catch{
+        if(url){URL.revokeObjectURL(url);urls.current.delete(url)}
+        if(run!==openingRun.current)return
+        try{await loadGiftLayers();if(run===openingRun.current)setLayersReady(true)}catch{/* The still and letter remain usable if an art asset is unavailable. */}
+      }
     }
-    if(video)discard(video.url)
-    setVideo({url:newUrl(file),name:file.name})
-    setMemoryIndex(0)
-    setFeedback('Your video is ready to preview.')
-    event.target.value=''
+    if(run!==openingRun.current)return
+    setPreparing(false);setOpening(true);timer.current=setTimeout(()=>go('letter'),reduced?80:4600)
   }
-  function unwrap() {
-    if(phase!=='ready')return
-    timers.current.forEach(clearTimeout)
-    timers.current=[]
-    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if(reduced){setPhase('reveal');return}
-    setPhase('untie')
-    timers.current.push(window.setTimeout(()=>setPhase('ribbons'),1250))
-    timers.current.push(window.setTimeout(()=>setPhase('lid'),2400))
-    timers.current.push(window.setTimeout(()=>setPhase('reveal'),3700))
+  function openEditor(){setEditor(true)}
+  async function upload(event:ChangeEvent<HTMLInputElement>,kind:Memory['kind']){
+    const files=Array.from(event.target.files||[]);event.target.value='';if(!files.length)return
+    const cap=kind==='image'?10-media.filter(m=>m.kind==='image').length:1,limit=(kind==='image'?10:20)*1024*1024
+    if(cap===0){setFeedback('Your gift has ten photos. Remove a photo before adding another.');return}
+    // HEIC is deliberately rejected: acceptance by a picker is not browser decoding support.
+    const valid=files.filter(f=>(kind==='image'?/^image\/(jpeg|png|webp|gif|avif)$/:/^video\/(mp4|webm|quicktime)$/).test(f.type)&&f.size<=limit).slice(0,cap)
+    if(!valid.length){setFeedback(kind==='image'?'Choose JPG, PNG, WebP, GIF or AVIF photos under 10 MB. Export HEIC photos as JPG first.':'Choose MP4, WebM or MOV under 20 MB. Playback depends on your browser’s video support.');return}
+    const retained=kind==='image'?media:media.filter(m=>m.kind!=='video')
+    if(valid.reduce((n,f)=>n+f.size,0)+retained.reduce((n,m)=>n+(m.size||0),0)>35*1024*1024){setFeedback('Please keep the whole gift under 35 MB so it opens comfortably on a phone.');return}
+    setBusy(true);setFeedback('Preparing your memories…')
+    try{
+      const items=await Promise.all(valid.map(async f=>{const source=kind==='image'?await preparePhoto(f):f;return {kind,name:f.name,source,caption:'',size:source.size}}))
+      const ready=items.map(m=>{const url=URL.createObjectURL(m.source);urls.current.add(url);return {...m,url}})
+      if(kind==='video')media.filter(m=>m.kind==='video').forEach(m=>{if(m.url.startsWith('blob:')){URL.revokeObjectURL(m.url);urls.current.delete(m.url)}})
+      setMedia(old=>[...(kind==='image'?old:old.filter(m=>m.kind!=='video')),...ready]);setIndex(0)
+      setFeedback(valid.length<files.length?'Some files were skipped. Check the formats, sizes and file limit.':'Your memories are ready. Add a caption or change their order below.')
+    }catch{setFeedback('One of these photos could not be opened. Try a JPG or PNG photo.')}finally{setBusy(false)}
   }
-  function restart(){
-    timers.current.forEach(clearTimeout);timers.current=[]
-    setMemoryIndex(0);setPhase('ready');setScene('gift')
-    window.scrollTo({top:0,behavior:'smooth'})
+  async function saveDraft(){
+    setBusy(true)
+    try{const draft:Draft={version:1,recipient,sender,message,savedAt:Date.now(),media:await Promise.all(media.map(async m=>({kind:m.kind,name:m.name,caption:m.caption||'',source:m.source||await (await fetch(m.url)).blob()})))};await writeDraft(draft);setSavedDraft(draft);setFeedback('Draft saved on this device. You can come back and restore it here.')}
+    catch{setFeedback('This browser could not save the draft. You can still download your gift.')}
+    finally{setBusy(false)}
   }
-  function go(next:Scene){setScene(next);window.scrollTo({top:0,behavior:'smooth'})}
-  function touchStart(e:TouchEvent<HTMLElement>){const t=e.changedTouches[0];if(t)swipeX.current={x:t.clientX,y:t.clientY}}
-  function touchEnd(e:TouchEvent<HTMLElement>){
-    const t=e.changedTouches[0],p=swipeX.current;swipeX.current=null
-    if(!t||!p)return
-    const dx=t.clientX-p.x,dy=t.clientY-p.y
-    if(Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.1)return
-    setMemoryIndex(x=>(x+(dx<0?1:total-1))%total)
-  }
-
-  return <div className="gs5-app">
-    <div className="gs5-ambient gs5-ambient-one" aria-hidden="true"/>
-    <div className="gs5-ambient gs5-ambient-two" aria-hidden="true"/>
-    <Snowfall/>
-    <header className="gs5-header">
-      <button type="button" onClick={restart} className="gs5-logo" aria-label="GlowSurprise home">
-        <span className="gs5-logo-icon"><Star size={16}/></span><span>GLOW<b>SURPRISE</b></span>
-      </button>
-      <button type="button" className="gs5-top-action" onClick={()=>setEditorOpen(true)}>Personalize <span aria-hidden="true">↗</span></button>
-    </header>
-    <main className="gs5-main">
+  function restoreDraft(){if(!savedDraft)return;media.forEach(m=>{if(m.url.startsWith('blob:')){URL.revokeObjectURL(m.url);urls.current.delete(m.url)}});setRecipient(savedDraft.recipient);setSender(savedDraft.sender);setMessage(savedDraft.message);setMedia(savedDraft.media.map(m=>{const url=URL.createObjectURL(m.source);urls.current.add(url);return {...m,url,size:m.source.size}}));setIndex(0);setFeedback('Your saved draft is restored.')}
+  async function deleteDraft(){try{await writeDraft(null);setSavedDraft(null);setFeedback('Saved draft removed from this device. Your current preview is still open.')}catch{setFeedback('The draft could not be removed. Please try again.')}}
+  async function downloadGift(){setBusy(true);setFeedback('Wrapping your gift file…');try{await exportGift({version:1,recipient,sender,message,media});setFeedback('Your gift file is ready. Open it in a browser, or send it privately as a document.')}catch{setFeedback('The gift file could not be created. Please try again.')}finally{setBusy(false)}}
+  function reorder(from:number,delta:number){const to=from+delta;if(to<0||to>=media.length)return;setMedia(old=>{const next=[...old];[next[from],next[to]]=[next[to],next[from]];return next});setIndex(0)}
+  function removeMedia(url:string){URL.revokeObjectURL(url);urls.current.delete(url);setMedia(old=>old.filter(m=>m.url!==url));setIndex(0)}
+  function move(delta:number){setDirection(delta);setIndex(i=>(i+delta+total)%total);setFeedback('')}
+  function touchStart(e:TouchEvent){const p=e.changedTouches[0];swipe.current={x:p.clientX,y:p.clientY}}
+  function touchEnd(e:TouchEvent){const p=e.changedTouches[0],s=swipe.current;swipe.current=null;if(s&&Math.abs(p.clientX-s.x)>50&&Math.abs(p.clientX-s.x)>Math.abs(p.clientY-s.y)*1.3)move(p.clientX<s.x?1:-1)}
+  const transition={duration:reduced?0:.8,ease:[.22,1,.36,1] as [number,number,number,number]}
+  return <MotionConfig reducedMotion="user"><div className="cinema" data-scene={scene}>
+    <Snow paused={paused||reduced||editor}/>
+    <header className="masthead"><button className="brand" onClick={restart} aria-label="GlowSurprise home"><Star/><span>glow<span>surprise</span><sup>™</sup></span></button>{!received&&<button className="text-button personalize" onClick={openEditor}>Make it yours <span aria-hidden="true">↗</span></button>}</header>
+    <main id="main">
       <AnimatePresence mode="wait">
-        {scene==='gift' && <motion.section key="gift" className="gs5-experience gs5-opening" initial={{y:25,scale:.98}} animate={{y:0,scale:1}} exit={{y:-40,scale:1.05}} transition={{duration:.6,ease:[.16,.75,.2,1]}}>
-          <div className="gs5-world">
-            
-            <div className="gs5-world-top">
-              <p className="gs5-eyebrow">A CHRISTMAS SURPRISE · MADE PERSONAL</p>
-              <h1>Unwrap a little<br/><em>Christmas magic.</em></h1>
-              <p className="gs5-opening-lead">A Christmas gift that reveals your favourite memories.</p>
-            </div>
-            <div className="gs5-world-middle">
-              <div className="gs5-bauble gs5-bauble-left" aria-hidden="true"/><div className="gs5-bauble gs5-bauble-right" aria-hidden="true"/>
-              <PremiumGiftBox phase={phase} onOpen={unwrap} photoUrl={photos[0]?.url}/>
-            </div>
-            <div className="gs5-world-bottom">
-              <div className="gs5-tiny-divider"><span/>✦<span/></div>
-              <button type="button" className="gs5-primary" onClick={()=>phase==='reveal'?go('letter'):unwrap()} disabled={phase!=='ready' && phase!=='reveal'}>
-                {phase==='ready'?'Unwrap your surprise':phase==='reveal'?'Open your Christmas card':'Unwrapping your present…'}
-                <span aria-hidden="true">↗</span>
-              </button>
-              <p className="gs5-quiet">The gift is only the beginning.</p>
-            </div>
-          </div>
+        {scene==='gift'&&<motion.section key="gift" className="gift-scene" exit={{opacity:0,filter:reduced?'none':'blur(8px)',scale:reduced?1:1.04}} transition={{duration:reduced?0:.6}}>
+          <div className="intro"><div className="edition"><span/>CHRISTMAS, KEPT CLOSE<span/></div><h1>A little wonder.<br/><em>A world of memories.</em></h1><p>{recipient!==copy.recipient?<>A little Christmas wonder, just for<br/><span className="recipient-intro">{recipient}</span></>:<>For the one who makes ordinary moments<br/>feel extraordinary.</>}</p></div>
+          <div className="gift-stage"><div className={'light-bloom '+(opening?'is-opening':'')} aria-hidden="true"/><PremiumGiftBox phase={opening?'untie':'ready'} onOpen={unwrap} reduced={reduced} layersReady={layersReady} openingUrl={openingUrl} photoUrl={media.find(m=>m.kind==='image')?.url}/></div>
+          <div className="gift-action"><p className="gift-whisper" aria-live="polite">{opening?'Something beautiful is waiting inside.':'A Christmas gift. A story only you can tell.'}</p><button className="primary" onClick={unwrap} disabled={opening||preparing}>{opening?'Opening your surprise…':preparing?'A little magic is on its way…':'Unwrap your surprise'}<span aria-hidden="true">{opening?'✧':'↗'}</span></button><span className="micro">MADE OF MOMENTS. WRAPPED IN LOVE.</span></div>
+          <div className="chapter-index"><span>01</span><i/>THE GIFT</div>
         </motion.section>}
-        {scene==='letter' && <motion.section key="letter" className="gs5-experience gs5-letter-scene" initial={{y:125,rotateX:-14,scale:.88}} animate={{y:0,rotateX:0,scale:1}} exit={{y:-80,scale:.96}} transition={{duration:.9,ease:[.14,.8,.17,1]}}>
-          <p className="gs5-eyebrow">A LETTER FROM THE HEART</p>
-          <div className="gs5-letter-wrap">
-            <div className="gs5-letter-corners"/>
-            <Star size={22}/>
-            <span className="gs5-letter-edition">CHRISTMAS EDITION · 2026</span>
-            <span className="gs5-letter-for">Especially for</span>
-            <h2>{recipient.trim()||'Someone special'}</h2>
-            <div className="gs5-letter-flourish">✦</div>
-            <p className="gs5-letter-message">{message.trim()||'A little Christmas love, made just for you.'}</p>
-            <p className="gs5-letter-from">{sender.trim()||'With love'}</p>
-            <span className="gs5-letter-mark">GLOW SURPRISE · BY GLOWBAUBLE</span>
-          </div>
-          <button className="gs5-primary" type="button" onClick={()=>go('memories')}>Discover your memories <span aria-hidden="true">↗</span></button>
-          <button className="gs5-subtle-action" type="button" onClick={()=>setEditorOpen(true)}>Personalize this message</button>
+        {scene==='letter'&&<motion.section key="letter" className="letter-scene scene" onAnimationComplete={()=>title.current?.focus({preventScroll:true})} initial={{opacity:0,y:reduced?0:35}} animate={{opacity:1,y:0}} exit={{opacity:0,y:reduced?0:-20}} transition={transition}>
+          <div className="edition">02 / A FEW WORDS, JUST FOR YOU</div>
+          <article className="letter"><div className="letter-top"><Star/><span>CHRISTMAS {copy.year}</span></div><p className="for-you">Especially for</p><h2 ref={title} tabIndex={-1}>{recipient.trim()||copy.recipient}</h2><div className="ink-rule"/><p className="letter-message">{message.trim()||copy.message}</p><p className="letter-signature">{sender.trim()||copy.sender}</p><div className="letter-bottom">A LITTLE LOVE, TO KEEP FOREVER <Star/></div></article>
+          <button className="primary" onClick={()=>go('memories')}>Step inside our memories <span aria-hidden="true">↗</span></button>
         </motion.section>}
-        {scene==='memories' && <motion.section key="memories" className="gs5-experience gs5-memories-scene" initial={{y:65,scale:.95}} animate={{y:0,scale:1}} exit={{y:-50,scale:1.03}} transition={{duration:.7,ease:[.16,.75,.2,1]}}>
-          <p className="gs5-eyebrow">OUR LITTLE TREASURES</p>
-          <h2 className="gs5-section-title">The memories<br/><em>that glow.</em></h2>
-          <p className="gs5-section-deck">{demo?'This is where your favourite photos and videos become the gift.':'The little moments that make everything worthwhile.'}</p>
-          <div className="gs5-album" onTouchStart={touchStart} onTouchEnd={touchEnd}>
-            <div className="gs5-album-back gs5-album-back-one"/>
-            <div className="gs5-album-back gs5-album-back-two"/>
-            <AnimatePresence mode="wait">
-              <motion.div key={demo?'demo'+active:'real'+active} className="gs5-polaroid"
-                initial={{x:95,rotate:9,scale:.93}} animate={{x:0,rotate:-2,scale:1}}
-                exit={{x:-95,rotate:-9,scale:.93}} transition={{duration:.57,ease:[.2,.72,.2,1]}}>
-                <div className="gs5-photo-window">
-                  {demo ? <WinterMemoryArt variant={active}/> : memories[active].kind==='image' ? <>
-                    <div className="gs5-photo-blur" style={{backgroundImage:'url("'+memories[active].url+'")'}} aria-hidden="true"/>
-                    <img src={memories[active].url} alt={'Personal memory '+(active+1)}/>
-                  </> : <video src={memories[active].url} controls playsInline preload="metadata" aria-label="Personal memory video"/>}
-                  <span className="gs5-photo-counter">{String(active+1).padStart(2,'0')} / {String(total).padStart(2,'0')}</span>
-                </div>
-                <div className="gs5-polaroid-bottom">
-                  <span className="gs5-polaroid-caption">{demo?demoStories[active].title:'A moment worth keeping'}</span>
-                  <span className="gs5-polaroid-star">✧</span>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+        {scene==='memories'&&<motion.section key="memories" className="memories-scene scene" onAnimationComplete={()=>title.current?.focus({preventScroll:true})} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={transition}>
+          <div className="memory-heading"><div className="edition">03 / THE MOMENTS THAT MATTER</div><h2 ref={title} tabIndex={-1}>If we could keep<br/><em>a moment.</em></h2><p>{demo?'Imagine your favourite memories here.':'This is what a little forever looks like.'}</p></div>
+          <div className="memory-display" role="region" aria-label="Your memories" tabIndex={0} onKeyDown={e=>{if((e.target as HTMLElement).closest('video'))return;if(e.key==='ArrowRight'){e.preventDefault();move(1)}if(e.key==='ArrowLeft'){e.preventDefault();move(-1)}}} onTouchStart={touchStart} onTouchEnd={touchEnd}>
+            <div className="memory-sheet" aria-hidden="true"/>
+            <AnimatePresence mode="wait"><motion.figure className="memory-frame" key={demo?'demo'+active:current.url} initial={{opacity:0,x:reduced?0:direction*50,rotate:reduced?0:direction*4}} animate={{opacity:1,x:0,rotate:0}} exit={{opacity:0,x:reduced?0:-direction*50,rotate:reduced?0:-direction*4}} transition={{...transition,duration:reduced?0:.55}}>
+              <div className="memory-media">{demo?<DemoArt index={active}/>:current.kind==='image'?<img src={current.url} alt={`Your memory ${active+1}`} onError={()=>setFeedback('This photo could not be opened. Please choose another format in Make it yours.')}/>:<video src={current.url} controls playsInline preload="metadata" aria-label="Your personal memory video" onError={()=>setFeedback('This video format could not be played. Try an H.264 MP4 video.')}/>}</div>
+              <figcaption><span>{demo?copy.demoStories[active].title:(current.caption||'A moment worth keeping')}</span><Star/></figcaption>
+            </motion.figure></AnimatePresence>
           </div>
-          <div className="gs5-album-controls">
-            <button type="button" onClick={()=>setMemoryIndex(i=>(i+total-1)%total)} aria-label="Previous memory">←</button>
-            <div className="gs5-progress" aria-label={'Memory '+(active+1)+' of '+total}>{Array.from({length:total},(_,i)=><i key={i} className={i===active?'active':''}/>)}</div>
-            <button type="button" onClick={()=>setMemoryIndex(i=>(i+1)%total)} aria-label="Next memory">→</button>
-          </div>
-          {demo&&<button type="button" className="gs5-subtle-action" onClick={()=>setEditorOpen(true)}>Add your own photos & videos</button>}
-          <button type="button" className="gs5-primary" onClick={()=>go('final')}>One last little surprise <span aria-hidden="true">↗</span></button>
+          <div className="memory-controls"><button className="round-button" onClick={()=>move(-1)} aria-label="Previous memory">←</button><span aria-live="polite">{String(active+1).padStart(2,'0')} <i>/ {String(total).padStart(2,'0')}</i></span><button className="round-button" onClick={()=>move(1)} aria-label="Next memory">→</button></div>
+          {feedback&&<p className="feedback" role="status">{feedback}</p>}
+          <button className="primary" onClick={()=>go('final')}>And one more thing <span aria-hidden="true">↗</span></button>
+          {demo&&!received&&<button className="text-button demo-link" onClick={openEditor}>Add your photos & video</button>}
         </motion.section>}
-        {scene==='final'&&<motion.section key="final" className="gs5-experience gs5-finale" initial={{y:80,scale:.89}} animate={{y:0,scale:1}} exit={{y:-50}} transition={{duration:.85}}>
-          
-          <div className="gs5-finale-wreath"><span>✧</span></div>
-          <p className="gs5-eyebrow">FROM MY HEART TO YOURS</p>
-          <h2>The most beautiful gifts<br/><em>stay with us.</em></h2>
-          <p>Some memories don't belong in a box. They live in the people we love.</p>
-          <span className="gs5-signature">{sender.trim()||'With love'}</span>
-          <button type="button" className="gs5-primary" onClick={restart}>Experience the magic again <span aria-hidden="true">↺</span></button>
-          <button type="button" className="gs5-subtle-action" onClick={()=>setEditorOpen(true)}>Make yours personal</button>
-          <small className="gs5-demo-disclaimer">Demo preview only · Sharing and permanent saving come with the complete product.</small>
-        </motion.section>}
+        {scene==='final'&&<motion.section key="final" className="final-scene scene" onAnimationComplete={()=>title.current?.focus({preventScroll:true})} initial={{opacity:0,y:reduced?0:20}} animate={{opacity:1,y:0}} transition={transition}><div className="final-star"><Star/></div><div className="edition">04 / ALWAYS, WITH LOVE</div><h2 ref={title} tabIndex={-1}>The best part<br/>of every memory<br/><em>is you.</em></h2><p>Here’s to all the Christmases to come.<br/>And all the little forevers in between.</p><span className="final-signature">{sender.trim()||copy.sender}</span><button className="primary" onClick={restart}>Feel it all again <span aria-hidden="true">↺</span></button>{!received&&<button className="text-button" onClick={openEditor}>Finish & download your gift ↗</button>}</motion.section>}
       </AnimatePresence>
     </main>
-    <footer className="gs5-footer"><span>GLOWSURPRISE · BY GLOWBAUBLE</span><span>CHRISTMAS 2026</span></footer>
-    <AnimatePresence>
-      {editorOpen&&<motion.div className="gs5-editor-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
-        onMouseDown={e=>{if(e.currentTarget===e.target)setEditorOpen(false)}}>
-        <motion.aside className="gs5-editor" role="dialog" aria-modal="true" aria-labelledby="gs5-editor-title"
-          initial={{x:'100%'}} animate={{x:0}} exit={{x:'100%'}} transition={{type:'spring',stiffness:240,damping:31}}>
-          <div className="gs5-editor-header"><div><span>THE GLOWSURPRISE STUDIO</span><h2 id="gs5-editor-title">Make it <em>personal.</em></h2></div>
-            <button type="button" aria-label="Close editor" onClick={()=>setEditorOpen(false)}>✕</button></div>
-          <p className="gs5-editor-lead">The best gift is a little piece of your story. Add yours and preview it instantly.</p>
-          <label className="gs5-field">For<input maxLength={45} value={recipient} onChange={e=>setRecipient(e.target.value)} placeholder="Recipient's name"/></label>
-          <label className="gs5-field">From<input maxLength={55} value={sender} onChange={e=>setSender(e.target.value)} placeholder="Your name"/></label>
-          <label className="gs5-field">Your Christmas message<textarea rows={5} maxLength={450} value={message} onChange={e=>setMessage(e.target.value)}/><small>{message.length}/450</small></label>
-          <div className="gs5-media-picker">
-            <p>YOUR FAVOURITE MEMORIES</p>
-            <input type="file" accept="image/*" multiple hidden ref={photoInput} onChange={handlePhotos}/>
-            <input type="file" accept="video/*" hidden ref={videoInput} onChange={handleVideo}/>
-            <button type="button" onClick={()=>photoInput.current?.click()}>＋ <span>{photos.length?'Change photos':'Add photos'} <small>Up to 10 · 10MB each</small></span></button>
-            <button type="button" onClick={()=>videoInput.current?.click()}>▷ <span>{video?'Change video':'Add a video'} <small>One video · up to 20MB</small></span></button>
-            <p className="gs5-media-summary">{photos.length} photos {video?' · 1 video':''}</p>
-            {feedback&&<p className="gs5-feedback" role="status">{feedback}</p>}
-          </div>
-          <div className="gs5-editor-end">
-            <p>Private browser preview. Your files are not uploaded or saved to a server.</p>
-            <button type="button" className="gs5-primary" onClick={()=>{setEditorOpen(false);restart()}}>Preview my GlowSurprise <span aria-hidden="true">↗</span></button>
-          </div>
-        </motion.aside>
-      </motion.div>}
-    </AnimatePresence>
-  </div>
+    <footer className="footer"><span>A GLOWSURPRISE CHRISTMAS</span><button className="motion-toggle" onClick={()=>setPaused(p=>!p)} aria-pressed={paused||reduced} disabled={reduced}>{paused||reduced?'Snow paused':'Pause snow'}</button><span>{copy.year}</span></footer>
+    <dialog ref={dialog} className="editor" aria-labelledby="editor-title" onKeyDown={e=>{if(e.key!=='Tab')return;const items=Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([hidden]), textarea'));const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}}} onCancel={()=>setEditor(false)} onClick={e=>{if(e.target===e.currentTarget)setEditor(false)}}>
+      <div className="editor-inner"><div className="editor-top"><span className="edition">YOUR CHRISTMAS STUDIO</span><button className="round-button" onClick={()=>setEditor(false)} aria-label="Close editor">×</button></div><h2 id="editor-title">Make it <em>personal.</em></h2><p className="editor-deck">A few favourite moments. A few words from the heart. A gift that could only come from you.</p>
+      <div className="studio-steps"><span>01 <b>Your words</b></span><span>02 <b>Your memories</b></span><span>03 <b>Your gift</b></span></div>
+      {savedDraft&&<div className="draft-banner"><span>A saved draft is waiting on this device.</span><button onClick={restoreDraft} disabled={busy}>Restore draft</button><button onClick={deleteDraft} disabled={busy}>Remove saved draft</button></div>}
+      <label className="field">For<input autoComplete="off" maxLength={45} value={recipient} onChange={e=>setRecipient(e.target.value)}/></label><label className="field">From<input autoComplete="off" maxLength={55} value={sender} onChange={e=>setSender(e.target.value)}/></label><label className="field">Your Christmas message<textarea maxLength={450} rows={5} value={message} onChange={e=>setMessage(e.target.value)}/><span>{message.length} / 450</span></label>
+      <div className="upload-grid"><input aria-label="Upload photos" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" multiple hidden ref={photoInput} onChange={e=>upload(e,'image')}/><input aria-label="Upload video" type="file" accept="video/mp4,video/webm,video/quicktime" hidden ref={videoInput} onChange={e=>upload(e,'video')}/><button disabled={busy||media.filter(m=>m.kind==='image').length>=10} onClick={()=>photoInput.current?.click()}><span>＋</span>Add photos<small>Up to 10 · 10 MB each</small></button><button disabled={busy} onClick={()=>videoInput.current?.click()}><span>▷</span>Add a video<small>One video · 20 MB</small></button></div>
+      {media.length>0&&<><div className="collection-summary">{media.length} {media.length===1?'memory':'memories'} · {(media.reduce((n,m)=>n+(m.size||0),0)/1024/1024).toFixed(1)} MB <span>Your first photo appears in the reveal.</span></div><ol className="memory-editor-list">{media.map((m,i)=><li key={m.url}><div className="memory-editor-thumb">{m.kind==='image'?<img src={m.url} alt=""/>:<span aria-hidden="true">▷</span>}<b>{String(i+1).padStart(2,'0')}</b></div><div className="memory-editor-details"><span className="file-name">{m.name}</span><label>Caption<input maxLength={90} value={m.caption||''} placeholder="What made this moment special?" onChange={e=>setMedia(old=>old.map(item=>item.url===m.url?{...item,caption:e.target.value}:item))}/></label><div className="memory-editor-actions"><button disabled={busy||i===0} onClick={()=>reorder(i,-1)} aria-label={'Move '+m.name+' earlier'}>↑</button><button disabled={busy||i===media.length-1} onClick={()=>reorder(i,1)} aria-label={'Move '+m.name+' later'}>↓</button><button disabled={busy} onClick={()=>removeMedia(m.url)} aria-label={'Remove '+m.name}>Remove</button></div></div></li>)}</ol></>}
+      <p className="feedback" role="status">{feedback}</p>
+      <div className="studio-finish"><span className="edition">READY TO MAKE SOMEONE SMILE?</span><button className="primary" disabled={busy} onClick={()=>{setEditor(false);restart()}}>Preview my gift <span aria-hidden="true">↗</span></button><button className="download-gift" disabled={busy} onClick={downloadGift}>{busy?'Preparing…':'Download this gift'} <span aria-hidden="true">↓</span></button><button className="text-button save-draft" disabled={busy} onClick={saveDraft}>Save draft on this device</button><div className="privacy-note">Your memories stay on your device. Nothing is uploaded. Download a complete HTML gift to open in a browser or send as a document. Anyone with the file can view it. Mobile file viewers may require “Open in browser”. A shareable web link is not included.</div></div></div>
+    </dialog>
+  </div></MotionConfig>
 }

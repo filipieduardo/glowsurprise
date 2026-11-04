@@ -1,46 +1,15 @@
-import '../original-gift.css'
-
-export type OpeningPhase = 'ready' | 'untie' | 'ribbons' | 'lid' | 'reveal'
-
-type Props = { phase: OpeningPhase; onOpen: () => void; photoUrl?: string }
-
-/**
- * Original GlowSurprise present (first prototype), restored as requested.
- * Only visual change from the original: no right-hand side panel.
- * Existing page scenes, photo editor, and staging remain untouched.
- */
-export default function PremiumGiftBox({ phase, onOpen }: Props) {
-  const opening = phase !== 'ready'
-  return (
-    <div className={'gs-first-gift-stage' + (opening ? ' gs-original-unwrapping' : '')} data-phase={phase}>
-      <div className="gs-original-aura" aria-hidden="true" />
-      <div className="gs-original-orbit gs-original-orbit-one" aria-hidden="true">✧</div>
-      <div className="gs-original-orbit gs-original-orbit-two" aria-hidden="true">✦</div>
-      <div className="gs-original-orbit gs-original-orbit-three" aria-hidden="true">✧</div>
-      <button
-        type="button"
-        className="gs-original-present-button"
-        onClick={onOpen}
-        aria-label="Unwrap your Christmas present"
-        disabled={opening}
-      >
-        <div className="gs-original-present">
-          <div className="gs-original-present-base">
-            <div className="gs-original-present-front">
-              <span className="gs-original-ribbon-vertical" />
-              <span className="gs-original-ribbon-horizontal" />
-              <span className="gs-original-present-crest" aria-hidden="true">✦</span>
-            </div>
-          </div>
-          <div className="gs-original-present-lid">
-            <span className="gs-original-lid-face"><span className="gs-original-lid-ribbon" /></span>
-            <span className="gs-original-bow gs-original-bow-left" />
-            <span className="gs-original-bow gs-original-bow-right" />
-            <span className="gs-original-knot" />
-          </div>
-          <div className="gs-original-present-light" aria-hidden="true" />
-        </div>
-      </button>
-    </div>
-  )
+import {giftAssets} from '../lib/giftAssets'
+export type OpeningPhase='ready'|'untie'|'ribbons'|'lid'|'reveal'
+type Props={phase:OpeningPhase;onOpen:()=>void;reduced?:boolean;photoUrl?:string;layersReady?:boolean;openingUrl?:string}
+/** Original Cycles art in transparent layers. Physical light is baked once;
+ * the recipient's device only composites images and the personal memory. */
+export default function PremiumGiftBox({phase,onOpen,reduced=false,photoUrl,layersReady=false,openingUrl='' }:Props){
+  const opening=phase!=='ready'&&!reduced
+  const layered=opening&&!openingUrl&&layersReady
+  return <button className={'gift-object baked-gift '+(openingUrl&&opening?'is-baked-opening':layered?'is-unwrapping':'')} type="button" aria-label="Open your Christmas gift" onClick={onOpen} disabled={phase!=='ready'} data-phase={phase}>
+    {layered&&<img className="gift-layer gift-base" src={giftAssets.base} alt="" aria-hidden="true" width={720} height={680}/>}
+    <img className="gift-poster" src={opening&&openingUrl?openingUrl:giftAssets.poster} alt="" aria-hidden="true" width={720} height={680}/>
+    {layered&&<img className="gift-layer gift-lid" src={giftAssets.lid} alt="" aria-hidden="true" width={720} height={680}/>}
+    {opening&&(photoUrl||layered)&&<div className="personal-memory-reveal" aria-hidden="true">{photoUrl?<img src={photoUrl} alt=""/>:<div className="reveal-inscription"><span>✧</span><em>For you.</em><small>WITH ALL MY LOVE</small></div>}<span>{photoUrl?'A moment to keep.':'A little love, just for you.'}</span></div>}
+  </button>
 }

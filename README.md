@@ -1,83 +1,76 @@
-# Birthday Experience
+# GlowSurprise — cinematic Christmas gift
 
-A private-feeling, phone-first **interactive birthday web app** — a template you
-can fork and make your own. It unfolds like a gift opening in stages: a sealed
-invitation, a time-lock, a password, a delivery, an unwrapping, a cake with
-candle-blowing, ten gifts, a tic-tac-toe reveal, personal notes, and a keepsake
-booklet she can download from.
+A mobile-first Christmas gift with an original burgundy square box, satin bow, personal letter, photo/video memories and a final message. The gift maker can arrange and caption memories, explicitly save a private draft on the current device, and download a self-contained recipient HTML file. No Shopify integration or server upload is involved.
 
-Styled with a **Chinese-cinematic** aesthetic — ink night, cinnabar red and
-imperial gold, with lanterns, plum blossoms, seal chops, moon gates and scrolls —
-but every colour and word is yours to change.
+## Run locally
 
-## The journey (scene by scene)
-1. **Sealed invitation** — a red envelope with a chop seal and a live countdown.
-2. **Time lock** — stays sealed until a set date/time, read from the real clock.
-3. **Password** — a birth-year gate, framed in a moon gate.
-4. **Delivery** — a courier arrives; she takes the parcel.
-5. **Unwrap** — the parcel opens to a magazine cover in a moon gate.
-6. **Cake** — balloons rise to reveal her photo and a cake; candles blow out by
-   **microphone or tap**, with a gentle three-try gag.
-7. **Applause** — the mic drops.
-8. **Ten gifts** — each worth 2 points, the tally climbing.
-9. **Reveal** — tic-tac-toe (*play with me* / *play alone*); win, lose or draw,
-   the cards flip to "Happy Birthday" and the 2 × 10 clue.
-10. **Notes → the scroll ties shut → a keepsake booklet** with save buttons.
-
-## No-code builder — no code, just a friendly chat
-Open the page with **`#build`** on the end of the URL. The live demo is at
-`https://niki-co.github.io/birthday-experience/#build`.
-
-A friendly chat then asks for everything — the name, the date it unlocks, the
-password, the photos, the song and all ten gifts — and generates a
-**personalised page you download as a single file**. No code, no files to edit.
-
-## Quick start
-```bash
-npm install
-npm run build          # -> dist/
-node make-single.mjs   # -> dist/Ananya-Birthday.html (one self-contained file)
+```sh
+npm ci
+npm run build
+npm run preview
+# http://127.0.0.1:4173
 ```
-Then open `dist/index.html`, or serve `dist/` with any static server.
 
-## Make it yours — everything is in one file
-Open **`src/content.json`**. That is the whole edit surface — no code required.
-The important fields:
+`npm run dev` starts Vite. Production uses esbuild. `npm run build:portable` produces a self-contained HTML preview, including fonts and animation. For another workspace, use `node scripts/portable.mjs /path/preview.html`. The build also creates `dist/gift-template.html` for personalized downloads; serve it alongside the app.
 
-| Field | What it is |
-|---|---|
-| `meta.name` / `meta.from` | her name, your name |
-| `invitation.unlockISO` | the date & time it opens, e.g. `"2026-12-31T00:00:00+05:30"` (empty = opens immediately) |
-| `invitation.photos` | images for the little TV beside the letter |
-| `password.answer` | the password (her birth year by default) |
-| `celebration.photo` | the photo revealed at the cake |
-| `gifts[]` | the ten gifts — jar stars, certificate, mixtape, photo booth, magazine, reel, coupons, archive, stickers, spinner |
-| `notes.items` | your personal notes |
-| `keepsakes.items` | the files she can download at the end |
+## Visual design
 
-Media paths are just URLs or local paths, e.g. `"src": "media/her-photo.jpg"`.
+- Original square box with beveled edges, fitted lid, hollow interior and burgundy paper. Broad satin sheets have asymmetric loops, folded tails, woven hems, microtexture and directional highlights. No tubular ribbon, medallion, name on the box, extra right panel or oval ground shadow.
+- The original Three.js geometry is rendered with Blender Cycles studio lights. A transparent still loads first; an optimized animated WebP is fetched on opening. The 101-frame, 24 fps animation moves the ribbon, lid and camera, revealing a card. A personal photo is composited into the reveal when available.
+- The phone does not run a WebGL renderer. `GiftModel.ts` and `GiftRenderer.ts` remain authoring sources and are excluded from the production bundle. On animation fetch/decode failure, lightweight image layers preserve the opening and letter. Reduced motion skips the opening.
+- Deep green stage, ivory typography, quiet layered snow and four chapters. Snow can be paused. Personal defaults live in `src/content.json` → `glowsurprise`.
 
-## Features
-- **Resumes** — progress and points are saved in the browser, so she can pause
-  and come back.
-- **Real time-lock** — sealed until the date, checked against a real clock.
-- **Candle blowing** — microphone input, with a tap fallback so it never breaks.
-- **Rich motion** — lanterns sway, petals fall, stars unfold, cards flip, the
-  scroll rolls shut. All of it respects `prefers-reduced-motion`.
-- **Phone-first** — designed for a small screen, one column, thumb-friendly.
+## Gift studio and privacy
 
-## Deploy
-Any static host works — Vercel, Netlify, Cloudflare Pages, GitHub Pages, or just
-send the single HTML file.
+Up to ten photos and one video; captions, reorder and removal controls. Supported photos are prepared locally at a maximum 1800-pixel edge when needed. GIFs stay intact. Photos are limited to 10 MiB each, video to 20 MiB, and selected files to 35 MiB total. HEIC is rejected with an explanation; video codec playback remains browser-dependent.
 
-> **A note on privacy.** If your photos and videos are personal, do **not** put
-> them on a public host. Either send the single file directly, or host it behind
-> access control (for example **Cloudflare Pages + Cloudflare Access**, which is
-> free and locks the link to specific family emails).
+Nothing uploads to a server. Saving a draft is explicit and uses IndexedDB on this device/origin, with restore and removal controls. Browser storage can be cleared or evicted. Unsaved changes disappear on reload.
 
-## Tech
-React + TypeScript · Tailwind CSS (via PostCSS) · Motion · dnd-kit · built with
-**esbuild** (the build script is `build.mjs`).
+The download contains the gift, media and all app assets. The recipient sees the gift without editing controls and can open it offline in a browser. This is an HTML document, not a hosted share link; messaging apps and iOS Files may preview it without running it, so the recipient may need to open it in a compatible browser. Anyone holding the file can view its contents. Do not commit real personal media to this repository.
 
-## License
-MIT — see [LICENSE](LICENSE). Replace `[Your Name]` in it with your own.
+## Verification
+
+```sh
+npm run typecheck
+npm run lint
+npm run build
+npm run build:portable
+npx playwright install webkit
+npm run preview            # keep running in another terminal
+npm run test:preview
+node scripts/test-product.mjs
+node scripts/test-opening.mjs
+node scripts/test-delivery.mjs
+node scripts/review.mjs
+```
+
+Tests use installed Chrome on macOS and Playwright WebKit; adapt `executablePath` elsewhere. They cover responsive overflow, automated WCAG A/AA checks, keyboard/modal focus, reduced motion, photos, video playback, captions/order, draft persistence/removal, offline downloads, inert user text, replay, cancellation, actual changing animation frames in both engines and asset-failure fallback. Synthetic test media only. Screenshots and JSON results go to `../../outputs`; adapt for another workspace. The measured requestAnimationFrame rate is a Mac browser observation, not an iPhone hardware benchmark.
+
+## Rebuild the original art (optional)
+
+A normal app build uses the committed WebP assets; Blender is not required. To edit the model or light rig, use free Blender 4.5 and an FFmpeg build with WebP support:
+
+```sh
+node scripts/export-model.mjs
+blender --background --python scripts/render-gift.py
+blender --background --python scripts/render-layers.py
+blender --background --python scripts/render-opening.py
+ffmpeg -y -i .gift-art/renders/gift-closed.png -c:v libwebp -quality 95 public/gift-poster.webp
+ffmpeg -y -i .gift-art/renders/gift-base.png -c:v libwebp -quality 95 public/gift-base.webp
+ffmpeg -y -i .gift-art/renders/gift-lid.png -c:v libwebp -quality 95 public/gift-lid.webp
+ffmpeg -y -framerate 24 -i .gift-art/sequence/%04d.png -c:v libwebp_anim -quality 82 -loop 1 public/gift-opening.webp
+```
+
+`GIFT_ART_DIR` overrides the ignored `.gift-art` folder in all authoring scripts; `CHROME_PATH` overrides the exporter browser. Rendering defaults to CPU to avoid GPU compilation/memory pressure. Existing sequence frames are reused: remove your generated `.gift-art/sequence` before rerendering a changed model. The Blender scene is saved as `.gift-art/gift-studio.blend`.
+
+## Limits and review boundary
+
+The box has physically rendered light/materials, but the ribbon motion is choreographed geometry, not a physically accurate cloth/untying simulation. The animation is 720×680 at 24 fps, deliberately optimized for the small mobile stage; the still is 720×680. There is no live 3D orbit or arbitrary camera view. Physical iPhone/Safari, older hardware, iOS file handoff, thermal behavior and large personal videos still need device testing. Sample artwork is labeled. Hosting, durable server storage and Shopify integration remain future work.
+
+This is a review branch. No deployment workflow was modified or triggered. Pages still runs on `main` pushes or manual dispatch. Do not merge or deploy before approval.
+
+## Licenses
+
+The original models, procedural textures, renders, sample artwork and new code follow the repository MIT license. Runtime notices are preserved in `public/THIRD-PARTY-NOTICES.txt`; Cormorant Garamond uses SIL OFL 1.1 (`public/fonts/OFL.txt`). All added assets are original or free for commercial use under the included licenses. No paid model, stock footage, audio track, image generation or CDN is required. Blender and FFmpeg are authoring tools, not bundled application dependencies.
+
+Legacy birthday scenes remain in source for reference and are excluded from the Christmas production bundle.
