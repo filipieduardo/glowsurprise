@@ -1,3 +1,5 @@
+import '../original-gift.css'
+
 export type OpeningPhase = 'ready' | 'untie' | 'ribbons' | 'lid' | 'reveal'
 
 type Props = { phase: OpeningPhase; onOpen: () => void; photoUrl?: string }
