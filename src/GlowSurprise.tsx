@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import type { CSSProperties, ChangeEvent } from 'react'
+import type { CSSProperties, ChangeEvent, TouchEvent } from 'react'
+import PremiumGiftBox from './components/PremiumGiftBox'
+import type { OpeningPhase } from './components/PremiumGiftBox'
+import './glowsurprise-v2.css'
 import './glowsurprise.css'
 
 type Scene = 'gift' | 'letter' | 'memories' | 'final'
@@ -28,6 +31,9 @@ function Sparkle({ size = 18 }: { size?: number }) {
 function App() {
   const [scene, setScene] = useState<Scene>('gift')
   const [opening, setOpening] = useState(false)
+  const [openingPhase, setOpeningPhase] = useState<OpeningPhase>('idle')
+  const openingTimers = useRef<number[]>([])
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
   const [studioOpen, setStudioOpen] = useState(false)
   const [recipient, setRecipient] = useState('Someone special')
   const [sender, setSender] = useState('With all my love')
@@ -90,16 +96,45 @@ function App() {
     event.target.value = ''
   }
 
+  // The physical gift reveals in beats; no generic fade-to-next-scene.
   const unwrap = () => {
     if (opening) return
     setOpening(true)
-    window.setTimeout(() => { setScene('letter'); setOpening(false) }, 1500)
+    setOpeningPhase('untie')
+    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('lift'), 780))
+    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('reveal'), 2100))
+    openingTimers.current.push(window.setTimeout(() => {
+      setScene('letter')
+      setOpening(false)
+      setOpeningPhase('idle')
+    }, 3550))
   }
 
+  useEffect(() => () => { openingTimers.current.forEach(window.clearTimeout) }, [])
+
   const restart = () => {
+    openingTimers.current.forEach(window.clearTimeout)
+    openingTimers.current = []
     setMemoryIndex(0)
     setOpening(false)
+    setOpeningPhase('idle')
     setScene('gift')
+  }
+
+  const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.changedTouches[0]
+    if (touch) touchStart.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.changedTouches[0]
+    const start = touchStart.current
+    touchStart.current = null
+    if (!touch || !start) return
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.3) return
+    setMemoryIndex((index) => (index + (dx < 0 ? 1 : totalMoments - 1)) % totalMoments)
   }
 
   const navigate = (next: Scene) => {
@@ -130,47 +165,30 @@ function App() {
         <div className="gs-side-rule gs-right-rule" aria-hidden="true" />
         <AnimatePresence mode="wait">
           {scene === 'gift' && (
-            <motion.section key="gift" className="gs-scene gs-gift-scene" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.035 }} transition={{ duration: 0.7 }} aria-label="Your Christmas surprise">
-              <p className="gs-eyebrow"><span className="gs-line" /> THE ART OF GIVING <span className="gs-line" /></p>
-              <h1 className="gs-headline">A little Christmas <em>magic.</em></h1>
-              <p className="gs-subhead">An unforgettable surprise, made just for you.</p>
-
-              <div className={'gs-gift-scene-art' + (opening ? ' gs-unwrapping' : '')}>
-                <div className="gs-aura" aria-hidden="true" />
-                <div className="gs-orbit gs-orbit-one" aria-hidden="true"><Sparkle size={16} /></div>
-                <div className="gs-orbit gs-orbit-two" aria-hidden="true"><Sparkle size={10} /></div>
-                <div className="gs-orbit gs-orbit-three" aria-hidden="true"><Sparkle size={13} /></div>
-                <button type="button" className="gs-present-button" onClick={unwrap} aria-label="Unwrap your Christmas present" disabled={opening}>
-                  <div className="gs-present-shadow" />
-                  <div className="gs-present">
-                    <div className="gs-present-base">
-                      <div className="gs-present-side" />
-                      <div className="gs-present-front">
-                        <span className="gs-ribbon-vertical" />
-                        <span className="gs-ribbon-horizontal" />
-                        <span className="gs-present-crest"><Sparkle size={27} /></span>
-                      </div>
-                    </div>
-                    <div className="gs-present-lid">
-                      <span className="gs-lid-face"><span className="gs-lid-ribbon" /></span>
-                      <span className="gs-bow gs-bow-left" />
-                      <span className="gs-bow gs-bow-right" />
-                      <span className="gs-knot" />
-                    </div>
-                    <div className="gs-present-light" />
-                  </div>
+            <motion.section
+              key="gift"
+              className="gs-scene gs2-gift-scene"
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 1.2, y: -65, filter: 'brightness(1.4)' }}
+              transition={{ duration: 0.85, ease: [0.18, 0.8, 0.2, 1] }}
+              aria-label="Your Christmas surprise"
+            >
+              <p className="gs2-chapter">THE CHRISTMAS COLLECTION · 2026</p>
+              <h1 className="gs2-hero-title">A gift wrapped in <em>wonder.</em></h1>
+              <p className="gs2-hero-subtitle">Someone has made something extraordinary, just for you.</p>
+              <PremiumGiftBox phase={openingPhase} onOpen={unwrap} />
+              <div className="gs2-gift-action">
+                <button className="gs-primary-button" type="button" onClick={unwrap} disabled={opening}>
+                  {opening ? 'Unwrapping your surprise…' : 'Unwrap your surprise'}
+                  <span aria-hidden="true">✧</span>
                 </button>
-                <div className="gs-floor-glow" aria-hidden="true" />
-              </div>
-
-              <div className="gs-gift-action">
-                <button type="button" className="gs-primary-button" onClick={unwrap} disabled={opening}>{opening ? 'Unwrapping your surprise…' : 'Unwrap your surprise'} <span aria-hidden="true">✧</span></button>
-                <p className="gs-tiny-note">A moment made to remember</p>
+                <p className="gs2-gift-footnote">The most beautiful gifts are personal.</p>
               </div>
             </motion.section>
           )}
           {scene === 'letter' && (
-            <motion.section key="letter" className="gs-scene gs-letter-scene" initial={{ opacity: 0, y: 34 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.75 }}>
+            <motion.section key="letter" className="gs-scene gs-letter-scene gs2-letter-scene" initial={{ opacity: 0.7, y: 95, rotateX: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }} exit={{ opacity: 0, y: -60, rotateX: 9, scale: 0.95 }} transition={{ duration: 0.9, ease: [0.17, 0.8, 0.2, 1] }}>
               <p className="gs-eyebrow"><span className="gs-line" /> A NOTE FROM THE HEART <span className="gs-line" /></p>
               <div className="gs-letter-backlight" aria-hidden="true" />
               <div className="gs-letter-sheet">
@@ -189,29 +207,57 @@ function App() {
             </motion.section>
           )}
           {scene === 'memories' && (
-            <motion.section key="memories" className="gs-scene gs-memory-scene" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -24 }} transition={{ duration: 0.65 }}>
+            <motion.section key="memories" className="gs-scene gs-memory-scene gs2-memory-scene" initial={{ opacity: 0.3, y: 80, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -50, scale: 0.98 }} transition={{ duration: 0.85, ease: [0.17, 0.8, 0.2, 1] }}>
               <p className="gs-eyebrow"><span className="gs-line" /> OUR MOST TREASURED THINGS <span className="gs-line" /></p>
               <h2 className="gs-memory-title">The moments that <em>glow.</em></h2>
               <p className="gs-memory-intro">{hasMemories ? 'Every memory deserves a little magic.' : 'A beautiful place for your own photos, videos and stories.'}</p>
-              <div className="gs-memory-frame">
-                <div className="gs-memory-inner">
+              <div
+                className="gs2-memory-frame"
+                onTouchStart={onTouchStart}
+                onTouchEnd={onTouchEnd}
+                aria-label="Memories, swipe left or right to explore"
+              >
+                <div className="gs2-memory-inner">
                   <AnimatePresence mode="wait">
                     {hasMemories ? (
-                      <motion.div key={'memory-' + activeMoment} className="gs-memory-real" initial={{ opacity: 0, scale: 1.03 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-                        {memories[activeMoment].kind === 'image' ? <img src={memories[activeMoment].url} alt={'Uploaded memory ' + (activeMoment + 1)} /> : <video controls playsInline preload="metadata" src={memories[activeMoment].url} aria-label="Your uploaded video" />}
+                      <motion.div
+                        key={'memory-' + activeMoment}
+                        className="gs2-memory-content"
+                        initial={{ opacity: 0.4, x: 34, scale: 1.03 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -34, scale: 0.98 }}
+                        transition={{ duration: 0.48, ease: [0.2, 0.75, 0.24, 1] }}
+                      >
+                        {memories[activeMoment].kind === 'image' ? (
+                          <>
+                            <div className="gs2-memory-backdrop" style={{ backgroundImage: `url("${memories[activeMoment].url}")` }} aria-hidden="true" />
+                            <img src={memories[activeMoment].url} alt={'Your memory ' + (activeMoment + 1)} />
+                          </>
+                        ) : (
+                          <video controls playsInline preload="metadata" src={memories[activeMoment].url} aria-label="Your uploaded video" />
+                        )}
                       </motion.div>
                     ) : (
-                      <motion.div key={'demo-' + activeMoment} className="gs-memory-placeholder" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-                        <div className="gs-memory-ring"><Sparkle size={39}/></div>
+                      <motion.div
+                        key={'demo-' + activeMoment}
+                        className="gs-memory-placeholder gs2-memory-placeholder"
+                        initial={{ opacity: 0.3, x: 26, scale: 1.04 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -26, scale: 0.97 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <div className="gs-memory-ring"><Sparkle size={36}/></div>
                         <span className="gs-moment-number">MOMENT {demoMoments[activeMoment].index}</span>
                         <h3>{demoMoments[activeMoment].title}</h3>
                         <p>{demoMoments[activeMoment].detail}</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
+                  <div className="gs2-story-badge">GLOW SURPRISE · CHRISTMAS 2026</div>
+                  {hasMemories && <div className="gs2-memory-caption">Our favourite memories, together.</div>}
                 </div>
-                <div className="gs-frame-label">GLOW SURPRISE · CHRISTMAS 2026</div>
               </div>
+              <p className="gs2-frame-hint">SWIPE TO EXPLORE · EVERY MEMORY MATTERS</p>
               <div className="gs-memory-controls">
                 <button type="button" onClick={() => setMemoryIndex((i) => (i - 1 + totalMoments) % totalMoments)} aria-label="Previous memory">←</button>
                 <span>{String(activeMoment + 1).padStart(2, '0')} <span className="gs-controls-slash">/</span> {String(totalMoments).padStart(2, '0')}</span>
@@ -222,7 +268,7 @@ function App() {
             </motion.section>
           )}
           {scene === 'final' && (
-            <motion.section key="final" className="gs-scene gs-finale-scene" initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}>
+            <motion.section key="final" className="gs-scene gs-finale-scene gs2-finale-scene" initial={{ opacity: 0.2, scale: 0.86, y: 85 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.08 }} transition={{ duration: 1.1, ease: [0.16, 0.8, 0.2, 1] }}>
               <div className="gs-finale-wreath" aria-hidden="true"><Sparkle size={60}/></div>
               <p className="gs-eyebrow"><span className="gs-line" /> FROM MY HEART TO YOURS <span className="gs-line" /></p>
               <h2 className="gs-finale-heading">The best gifts <em>stay with us.</em></h2>
