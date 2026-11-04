@@ -1,116 +1,42 @@
 import * as THREE from 'three'
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
+import { createGiftModel } from './GiftModel'
 
-// Original, parametric model. Ribbons are wide, two-dimensional fabric surfaces,
-// never tubes. No external model, texture, HDRI, or paid asset is required.
-export function createGiftRenderer(host: HTMLDivElement, reduced: boolean) {
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power', preserveDrawingBuffer: true })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
-  renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = .92
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
-  host.appendChild(renderer.domElement)
-  const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(32, 1, .1, 40)
-  camera.position.set(0, 3.1, 7.8)
-  camera.lookAt(0, .35, 0)
-  const pmrem = new THREE.PMREMGenerator(renderer)
-  const room = new RoomEnvironment()
-  const env = pmrem.fromScene(room, .05)
-  scene.environment = env.texture
-  room.dispose(); pmrem.dispose()
-  const key = new THREE.DirectionalLight('#ffe2c2', 2.8); key.position.set(-3, 5, 5); scene.add(key)
-  key.castShadow=true; key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-4;key.shadow.camera.right=4;key.shadow.camera.top=4;key.shadow.camera.bottom=-4;key.shadow.normalBias=.012;key.shadow.bias=-.0001;key.shadow.radius=3
-  const edge = new THREE.DirectionalLight('#fff2d7', 1.8); edge.position.set(3, 2, -3); scene.add(edge)
-  const fill = new THREE.DirectionalLight('#acc8c1', .15); fill.position.set(2, 0, 4); scene.add(fill)
-  const root = new THREE.Group(); scene.add(root)
-  const textureCanvas=document.createElement('canvas');textureCanvas.width=256;textureCanvas.height=256
-  const ctx=textureCanvas.getContext('2d')!;const gradient=ctx.createLinearGradient(0,0,256,210);gradient.addColorStop(0,'#65152c');gradient.addColorStop(.45,'#42091e');gradient.addColorStop(1,'#230711');ctx.fillStyle=gradient;ctx.fillRect(0,0,256,256)
-  // Deterministic, subtle paper grain, generated locally.
-  let seed=42;const random=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296};for(let i=0;i<16000;i++){ctx.fillStyle=i%2?'#ffffff06':'#00000008';ctx.fillRect(random()*256,random()*256,1,1)}
-  const paperMap=new THREE.CanvasTexture(textureCanvas);paperMap.colorSpace=THREE.SRGBColorSpace
-  const paper = new THREE.MeshPhysicalMaterial({ map:paperMap, roughness: .52, metalness: .08, sheen: .18, sheenColor: new THREE.Color('#70243b'), sheenRoughness: .7, envMapIntensity: .3 })
-  const satin = new THREE.MeshPhysicalMaterial({ color: '#cbb482', roughness: .36, metalness: .45, sheen: .7, sheenColor: new THREE.Color('#fff3d1'), sheenRoughness: .3, side: THREE.DoubleSide, envMapIntensity: .75 })
-  const interior = new THREE.MeshStandardMaterial({ color: '#30121c', roughness: .85 })
-  const geometries: THREE.BufferGeometry[] = []
-  function box(w:number,h:number,d:number,mat:THREE.Material,parent:THREE.Group,x=0,y=0,z=0,r=.025) {
-    const geo = new RoundedBoxGeometry(w,h,d,3,r); geometries.push(geo)
-    const mesh = new THREE.Mesh(geo,mat); mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true; parent.add(mesh); return mesh
+/** Studio renderer: controlled reflections and actual paper/fabric response. */
+export function createGiftRenderer(host:HTMLDivElement,reduced:boolean,photoUrl?:string){
+  const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power',preserveDrawingBuffer:true})
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.94
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap
+  host.appendChild(renderer.domElement);RectAreaLightUniformsLib.init()
+  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(31,1,.1,35)
+  const studio=new THREE.Scene();studio.background=new THREE.Color('#0d1012')
+  const environmentAssets:{geometry:THREE.BufferGeometry;material:THREE.Material}[]=[]
+  function softbox(x:number,y:number,z:number,w:number,h:number,strength:number,color:string){const material=new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(strength),side:THREE.DoubleSide});const geometry=new THREE.PlaneGeometry(w,h);const mesh=new THREE.Mesh(geometry,material);mesh.position.set(x,y,z);mesh.lookAt(0,0,0);studio.add(mesh);environmentAssets.push({geometry,material})}
+  softbox(-3.5,3,4,2.3,5,5,'#fff0dc');softbox(4.5,1,1.5,.65,4,3,'#ecf4ff');softbox(0,5,-2,3,2,3.5,'#fff5e5')
+  const pmrem=new THREE.PMREMGenerator(renderer),env=pmrem.fromScene(studio,.025,.1,30)
+  scene.environment=env.texture;pmrem.dispose();environmentAssets.forEach(o=>{o.geometry.dispose();o.material.dispose()})
+  const key=new THREE.RectAreaLight('#fff0dc',10,3,4);key.position.set(-3.5,4,4);key.lookAt(0,.5,0);scene.add(key)
+  const rim=new THREE.RectAreaLight('#e4f0ff',3,.7,3);rim.position.set(3,2,-1);rim.lookAt(0,0,0);scene.add(rim)
+  const shadowLight=new THREE.DirectionalLight('#ffe7ca',.75);shadowLight.position.set(-3,5,5);shadowLight.castShadow=true;shadowLight.shadow.mapSize.set(1024,1024);Object.assign(shadowLight.shadow.camera,{left:-3,right:3,top:4,bottom:-3,near:.5,far:20});shadowLight.shadow.bias=-.00015;shadowLight.shadow.normalBias=.008;shadowLight.shadow.radius=3;scene.add(shadowLight)
+  scene.add(new THREE.HemisphereLight('#f0e4d1','#091a17',.35))
+  const model=createGiftModel();scene.add(model.root);model.root.rotation.y=-.055;model.setPhoto(photoUrl)
+  const glow=new THREE.PointLight('#ffdc9b',0,4);glow.position.set(0,1.4,.6);scene.add(glow)
+  let openingAt:number|null=null,frame=0,disposed=false,paused=false,hover=0,targetHover=0,last=0
+  const render=(now:number)=>{
+    if(disposed||paused)return
+    const t=openingAt===null?0:(now-openingAt)/1000,{lift,reveal}=model.pose(t)
+    const dt=last?Math.min((now-last)/1000,.05):.016;last=now
+    hover+=(targetHover-hover)*Math.min(1,dt*7)
+    model.root.rotation.y=-.055+(reduced?0:hover*.045)
+    camera.position.set(.04,2.7+lift*.65,8.25+lift*1.25);camera.lookAt(0,.3+lift*.4,0)
+    glow.intensity=reveal*1.6;renderer.render(scene,camera)
+    if((openingAt!==null&&t<4.2)||Math.abs(hover-targetHover)>.002)frame=requestAnimationFrame(render)
   }
-  // Square footprint, flush side walls, real rim and hollow interior.
-  box(2.2,.10,2.2,paper,root,0,-1,0)
-  box(2.2,1.95,.075,paper,root,0,0,1.065)
-  box(2.2,1.95,.075,paper,root,0,0,-1.065)
-  box(.075,1.95,2.1,paper,root,-1.065,0,0)
-  box(.075,1.95,2.1,paper,root,1.065,0,0)
-  box(2.06,.03,2.06,interior,root,0,-.9,0)
-  const lid = new THREE.Group(); root.add(lid); lid.position.y=1.04
-  box(2.3,.22,2.3,paper,lid)
-  const bands = new THREE.Group(); root.add(bands)
-  box(.31,1.98,.012,satin,bands,0,0,1.108,.004)
-  box(.31,1.98,.012,satin,bands,0,0,-1.108,.004)
-  box(2.22,.31,.012,satin,bands,0,.02,1.113,.004)
-  const lidBands = new THREE.Group(); lid.add(lidBands)
-  box(.32,.012,2.31,satin,lidBands,0,.117,0,.004)
-  box(2.31,.012,.32,satin,lidBands,0,.122,0,.004)
-  box(.32,.23,.012,satin,lidBands,0,0,1.155,.004)
-  const bow = new THREE.Group(); lid.add(bow); bow.position.y=.15
-  function strip(points:number[][],width:number,twist:number,parent:THREE.Group) {
-    const curve = new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)), false, 'centripetal')
-    const vertices:number[]=[], uv:number[]=[], indices:number[]=[]
-    const steps=64, across=8
-    for(let i=0;i<=steps;i++) {
-      const t=i/steps, p=curve.getPoint(t), tangent=curve.getTangent(t)
-      const side=new THREE.Vector3(0,0,1).applyAxisAngle(tangent, .85+Math.sin(t*Math.PI*2)*twist)
-      const normal=new THREE.Vector3().crossVectors(tangent,side).normalize()
-      for(let j=0;j<=across;j++) {
-        const v=j/across-.5
-        const fold=Math.cos(v*Math.PI)*.035 + Math.sin(v*Math.PI*6+t*7)*.008
-        const pinch=.55+.45*Math.sin(Math.PI*t)
-        const q=p.clone().addScaledVector(side,v*width*pinch).addScaledVector(normal,fold)
-        vertices.push(q.x,q.y,q.z);uv.push(t,j/across)
-        if(i<steps&&j<across){const a=i*(across+1)+j;indices.push(a,a+1,a+across+1,a+1,a+across+2,a+across+1)}
-      }
-    }
-    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.setIndex(indices);geo.computeVertexNormals();geometries.push(geo)
-    const mesh=new THREE.Mesh(geo,satin);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh
-  }
-  const left = new THREE.Group(), right = new THREE.Group(); bow.add(left,right)
-  strip([[0,.03,0],[-.42,.1,.03],[-.92,.3,-.04],[-.86,.49,-.10],[-.51,.46,-.08],[-.08,.12,.025]],.36,.35,left)
-  strip([[0,.06,0],[.44,.12,.01],[.94,.36,-.12],[.82,.54,-.17],[.43,.43,-.08],[.05,.08,.02]],.37,-.35,right)
-  strip([[-.07,.06,.03],[-.36,.1,.43],[-.55,.08,.95],[-.57,-.16,1.42],[-.45,-.76,1.44],[-.64,-1.13,1.38]],.39,.26,left)
-  strip([[.07,.04,.02],[.36,.1,.44],[.57,.08,.97],[.69,-.17,1.42],[.87,-.67,1.45],[.7,-.92,1.48]],.38,-.35,right)
-  // A broad, folded central band rather than a spherical knot.
-  strip([[0,.04,-.17],[0,.21,-.11],[0,.24,.06],[0,.13,.22],[0,.02,.12]],.31,.12,bow)
-  const cardMat=new THREE.MeshStandardMaterial({color:'#f3e4c9',roughness:.8})
-  const card=box(.95,1.25,.015,cardMat,root,0,.1,.1,.015);card.visible=false
-  const glow=new THREE.PointLight('#ffd494',0,5);glow.position.set(0,1.5,.2);root.add(glow)
-  let openingAt:number|null=null, frame=0, disposed=false, paused=false
-  const smooth=(t:number)=>{const v=THREE.MathUtils.clamp(t,0,1);return v*v*(3-2*v)}
-  function render(now:number) {
-    if(disposed || paused)return
-    const t=openingAt===null?0:(now-openingAt)/1000
-    const unbind=smooth(t/1.2), lift=smooth((t-1)/1.5), reveal=smooth((t-1.9)/1.2)
-    root.position.y=0
-    left.rotation.z=unbind*.32;right.rotation.z=-unbind*.32
-    bow.scale.setScalar(1-unbind*.2);bow.position.y=.15+unbind*.12
-    bands.visible=t<1.4;bands.scale.x=1+unbind*.15;bands.position.y=-unbind*.35
-    lid.position.set(-lift*.2,1.04+lift*1.65,-lift*.65);lid.rotation.x=-lift*.3;lid.rotation.z=-lift*.14
-    card.visible=reveal>0;card.position.y=.1+reveal*1.45;card.rotation.y=-.12*reveal;glow.intensity=reveal*2
-    camera.position.set(0,3.1+lift*.6,7.8+lift*1.6);camera.lookAt(0,.35+lift*.5,0)
-    renderer.render(scene,camera)
-    if(openingAt!==null && t<3.6) frame=requestAnimationFrame(render)
-  }
-  function invalidate(){cancelAnimationFrame(frame);frame=requestAnimationFrame(render)}
+  const invalidate=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(render)}
   const resize=new ResizeObserver(()=>{const {width,height}=host.getBoundingClientRect();if(!width||!height)return;renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix();invalidate()});resize.observe(host)
   const visibility=()=>{paused=document.hidden;if(paused)cancelAnimationFrame(frame);else invalidate()};document.addEventListener('visibilitychange',visibility)
   const lost=(e:Event)=>{e.preventDefault();host.dispatchEvent(new CustomEvent('gift-context-lost'))};renderer.domElement.addEventListener('webglcontextlost',lost)
+  const pointer=(e:PointerEvent)=>{if(reduced||openingAt!==null||e.pointerType==='touch')return;const r=host.getBoundingClientRect();targetHover=(e.clientX-r.left)/r.width-.5;invalidate()};const leave=()=>{targetHover=0;invalidate()};host.addEventListener('pointermove',pointer);host.addEventListener('pointerleave',leave)
   invalidate()
-  return {
-    open(){openingAt=performance.now()-(reduced?3600:0);invalidate()},
-    reset(){openingAt=null;invalidate()},
-    dispose(){disposed=true;cancelAnimationFrame(frame);resize.disconnect();document.removeEventListener('visibilitychange',visibility);renderer.domElement.removeEventListener('webglcontextlost',lost);geometries.forEach(g=>g.dispose());[paper,satin,interior,cardMat].forEach(m=>m.dispose());paperMap.dispose();env.dispose();renderer.dispose();renderer.domElement.remove()},
-  }
+  return {open(){openingAt=performance.now()-(reduced?4200:0);invalidate()},reset(){openingAt=null;invalidate()},dispose(){disposed=true;cancelAnimationFrame(frame);resize.disconnect();document.removeEventListener('visibilitychange',visibility);host.removeEventListener('pointermove',pointer);host.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',lost);model.dispose();env.dispose();renderer.dispose();renderer.domElement.remove()}}
 }

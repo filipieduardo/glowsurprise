@@ -1,26 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
-import type { createGiftRenderer } from './GiftRenderer'
-export type OpeningPhase = 'ready' | 'untie' | 'ribbons' | 'lid' | 'reveal'
-type Props = { phase: OpeningPhase; onOpen: () => void; reduced?: boolean }
-export default function PremiumGiftBox({phase,onOpen,reduced=false}:Props) {
-  const host=useRef<HTMLDivElement>(null)
-  const model=useRef<ReturnType<typeof createGiftRenderer>|null>(null)
-  const [ready,setReady]=useState(false)
-  const [fallback,setFallback]=useState(false)
-  useEffect(()=>{
-    let cancelled=false
-    const el=host.current!
-    const lost=()=>{setFallback(true);model.current?.dispose();model.current=null}
-    el.addEventListener('gift-context-lost',lost)
-    import('./GiftRenderer').then(({createGiftRenderer})=>{
-      if(cancelled)return
-      try {model.current=createGiftRenderer(el,reduced);setReady(true)} catch {setFallback(true)}
-    }).catch(()=>{if(!cancelled)setFallback(true)})
-    return()=>{cancelled=true;el.removeEventListener('gift-context-lost',lost);model.current?.dispose();model.current=null}
-  },[reduced])
-  useEffect(()=>{if(phase==='ready')model.current?.reset();else model.current?.open()},[phase,ready])
-  return <button className={'gift-object '+(fallback?'gift-fallback':'')} type="button" aria-label="Open your Christmas gift" onClick={onOpen} disabled={phase!=='ready'} data-phase={phase}>
-    <img className="gift-poster" src={(window as Window & {__GIFT_POSTER__?:string}).__GIFT_POSTER__ || './gift-poster.webp'} alt="" aria-hidden="true" style={{opacity:ready&&!fallback?0:1}}/>
-    <div ref={host} className="gift-canvas" aria-hidden="true" style={{opacity:fallback?0:1}}/>
+import {giftAssets} from '../lib/giftAssets'
+export type OpeningPhase='ready'|'untie'|'ribbons'|'lid'|'reveal'
+type Props={phase:OpeningPhase;onOpen:()=>void;reduced?:boolean;photoUrl?:string;layersReady?:boolean;openingUrl?:string}
+/** Original Cycles art in transparent layers. Physical light is baked once;
+ * the recipient's device only composites images and the personal memory. */
+export default function PremiumGiftBox({phase,onOpen,reduced=false,photoUrl,layersReady=false,openingUrl='' }:Props){
+  const opening=phase!=='ready'&&!reduced
+  const layered=opening&&!openingUrl&&layersReady
+  return <button className={'gift-object baked-gift '+(openingUrl&&opening?'is-baked-opening':layered?'is-unwrapping':'')} type="button" aria-label="Open your Christmas gift" onClick={onOpen} disabled={phase!=='ready'} data-phase={phase}>
+    {layered&&<img className="gift-layer gift-base" src={giftAssets.base} alt="" aria-hidden="true" width={720} height={680}/>}
+    <img className="gift-poster" src={opening&&openingUrl?openingUrl:giftAssets.poster} alt="" aria-hidden="true" width={720} height={680}/>
+    {layered&&<img className="gift-layer gift-lid" src={giftAssets.lid} alt="" aria-hidden="true" width={720} height={680}/>}
+    {opening&&(photoUrl||layered)&&<div className="personal-memory-reveal" aria-hidden="true">{photoUrl?<img src={photoUrl} alt=""/>:<div className="reveal-inscription"><span>✧</span><em>For you.</em><small>WITH ALL MY LOVE</small></div>}<span>{photoUrl?'A moment to keep.':'A little love, just for you.'}</span></div>}
   </button>
 }

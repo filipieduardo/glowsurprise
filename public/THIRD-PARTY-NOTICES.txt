@@ -1,6 +1,6 @@
 GlowSurprise cinematic preview — third-party notices
 
-Original gift geometry, generated grain, icons, abstract sample artwork and animation code are supplied under the repository MIT license. No paid or externally hosted model, photograph, audio, texture or HDRI is used.
+Original gift geometry, generated grain, Blender-rendered stills and opening sequence, icons, abstract sample artwork and animation code are supplied under the repository MIT license. No paid or externally hosted model, photograph, audio, texture or HDRI is used.
 
 
 === react ===
