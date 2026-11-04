@@ -6,6 +6,7 @@ import type { OpeningPhase } from './components/PremiumGiftBox'
 import './glowsurprise.css'
 import './glowsurprise-v2.css'
 import './glowsurprise-v3.css'
+import './glowsurprise-v4.css'
 
 type Scene = 'gift' | 'letter' | 'memories' | 'final'
 type Photo = { url: string; name: string }
@@ -190,18 +191,18 @@ function App() {
               <div className="gs3-portrait">
                 <div className="gs3-portrait-top">
                   <span className="gs3-ornament" aria-hidden="true">✦</span>
-                  <p className="gs3-kicker">AN ENCHANTED CHRISTMAS · 2026</p>
-                  <h1 className="gs3-hero-headline">Wrapped in <em>wonder.</em></h1>
-                  <p className="gs3-hero-description">Some gifts are too beautiful to stay wrapped.</p>
+                  <p className="gs3-kicker">GLOWSURPRISE · THE CHRISTMAS EDITION</p>
+                  <h1 className="gs3-hero-headline">More than a gift. <em>A feeling.</em></h1>
+                  <p className="gs3-hero-description">A personal message, your favourite memories and a little Christmas magic to unwrap.</p>
                 </div>
                 <PremiumGiftBox phase={openingPhase} onOpen={unwrap} />
                 <div className="gs3-footer-actions">
-                  <p className="gs3-tap-cue">A SURPRISE FROM SOMEONE SPECIAL</p>
+                  <p className="gs3-tap-cue">GLOW SURPRISE · THE DIGITAL GIFT</p>
                   <button className="gs-primary-button" type="button" onClick={unwrap} disabled={opening}>
                     {opening ? 'Your gift is opening…' : 'Unwrap your surprise'}
                     <span aria-hidden="true">✧</span>
                   </button>
-                  <p className="gs3-footer-note">Made personal. Remembered forever.</p>
+                  <p className="gs3-footer-note">A beautiful extra for your GlowBauble gift.</p>
                 </div>
               </div>
             </motion.section>
