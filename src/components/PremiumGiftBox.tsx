@@ -5,29 +5,7 @@ export type OpeningPhase = 'ready' | 'untie' | 'ribbons' | 'lid' | 'reveal'
 
 type Props = { phase: OpeningPhase; onOpen: () => void; photoUrl?: string }
 
-// Matching SVG paths allow the loops themselves to change shape as the silk is pulled.
-// The bow does not just rotate offscreen or vanish in a fade.
-const left = {
-  ready: 'M159 85 C126 49 94 20 55 34 C27 44 31 88 66 102 C99 116 137 101 159 85 Z',
-  untie: 'M159 85 C126 66 96 53 62 63 C29 71 18 112 46 131 C82 154 131 116 159 85 Z',
-  loose: 'M159 85 C120 86 91 99 64 122 C36 146 9 175 -15 180 C4 201 49 196 81 173 C115 141 143 103 159 85 Z',
-}
-const right = {
-  ready: 'M161 85 C194 49 226 20 265 34 C293 44 289 88 254 102 C221 116 183 101 161 85 Z',
-  untie: 'M161 85 C194 66 224 53 258 63 C291 71 302 112 274 131 C238 154 189 116 161 85 Z',
-  loose: 'M161 85 C200 86 229 99 256 122 C284 146 311 175 335 180 C316 201 271 196 239 173 C205 141 177 103 161 85 Z',
-}
-const leftRidge = {
-  ready: 'M150 84 C113 72 77 53 53 66',
-  untie: 'M151 87 C107 85 71 90 42 112',
-  loose: 'M150 93 C96 117 56 151 3 182',
-}
-const rightRidge = {
-  ready: 'M170 84 C207 72 243 53 267 66',
-  untie: 'M169 87 C213 85 249 90 278 112',
-  loose: 'M170 93 C224 117 264 151 317 182',
-}
-
+// The bow uses flat, open, folded satin shapes instead of cylindrical strokes.
 const sparkles = Array.from({ length: 18 }, (_, i) => ({
   a: (i * 137.51) % 360,
   radius: 100 + (i % 5) * 24,
@@ -35,14 +13,8 @@ const sparkles = Array.from({ length: 18 }, (_, i) => ({
   size: 4 + (i % 3) * 3,
 }))
 
-const ease: [number, number, number, number] = [.22, .8, .26, 1]
-
 export default function PremiumGiftBox({ phase, onOpen, photoUrl }: Props) {
   const isReady = phase === 'ready'
-  const begun = !isReady
-  const shape = isReady ? 'ready' : phase === 'untie' ? 'untie' : 'loose'
-  const released = phase === 'lid' || phase === 'reveal'
-
   return (
     <div className="gs5-gift-scene gs6-stage" data-phase={phase}>
       <div className="gs6-aureole" aria-hidden="true" />
@@ -100,97 +72,73 @@ export default function PremiumGiftBox({ phase, onOpen, photoUrl }: Props) {
             <span className="gs6-lid-lip" />
           </div>
 
-          <div className="gs6-silk-bow">
+          <div className="gs6-silk-bow gs7-silk-bow">
             <svg viewBox="0 0 320 200" fill="none" aria-hidden="true" focusable="false">
               <defs>
-                <linearGradient id="gs6-silk-face" x1="0%" y1="0%" x2="93%" y2="90%">
-                  <stop offset="0" stopColor="#8a552c"/>
-                  <stop offset=".13" stopColor="#e5bd7d"/>
-                  <stop offset=".26" stopColor="#fff3d0"/>
-                  <stop offset=".43" stopColor="#c59454"/>
-                  <stop offset=".60" stopColor="#9a6435"/>
-                  <stop offset=".78" stopColor="#f2d69e"/>
-                  <stop offset="1" stopColor="#8d5a2d"/>
+                <linearGradient id="gs7-gold-satin" x1="0%" y1="0%" x2="100%" y2="65%">
+                  <stop offset="0%" stopColor="#93612f"/>
+                  <stop offset="14%" stopColor="#e3bc7a"/>
+                  <stop offset="27%" stopColor="#fff4d1"/>
+                  <stop offset="39%" stopColor="#d3a460"/>
+                  <stop offset="54%" stopColor="#a87337"/>
+                  <stop offset="73%" stopColor="#f8e2ab"/>
+                  <stop offset="90%" stopColor="#b78240"/>
+                  <stop offset="100%" stopColor="#7d512b"/>
                 </linearGradient>
-                <linearGradient id="gs6-silk-fold" x1="0%" y1="0%" x2="100%" y2="30%">
-                  <stop offset="0" stopColor="#5d3218"/>
-                  <stop offset=".28" stopColor="#ae743a"/>
-                  <stop offset=".61" stopColor="#fff0bb"/>
-                  <stop offset="1" stopColor="#af773c"/>
+                <linearGradient id="gs7-satin-back" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0" stopColor="#f7dc9a"/>
+                  <stop offset=".45" stopColor="#a66c36"/>
+                  <stop offset=".8" stopColor="#714322"/>
+                  <stop offset="1" stopColor="#d7a761"/>
                 </linearGradient>
-                <linearGradient id="gs6-silk-ribbon" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0" stopColor="#885226"/>
-                  <stop offset=".22" stopColor="#ffe8b3"/>
-                  <stop offset=".49" stopColor="#c59253"/>
-                  <stop offset=".7" stopColor="#ffedb9"/>
-                  <stop offset="1" stopColor="#785025"/>
+                <linearGradient id="gs7-satin-tail" x1="0%" y1="0%" x2="95%" y2="25%">
+                  <stop offset="0%" stopColor="#7f532a"/>
+                  <stop offset="20%" stopColor="#e1b97c"/>
+                  <stop offset="46%" stopColor="#fff0bd"/>
+                  <stop offset="68%" stopColor="#c69455"/>
+                  <stop offset="100%" stopColor="#a06c35"/>
                 </linearGradient>
-                <filter id="gs6-silk-shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#21070d" floodOpacity=".65"/>
-                </filter>
               </defs>
 
-              <g className="gs6-unspool-behind" filter="url(#gs6-silk-shadow)">
-                <motion.path d="M158 86 C111 100 87 110 49 143 C15 173 -9 182 -42 211"
-                  stroke="url(#gs6-silk-ribbon)" strokeWidth="22" strokeLinecap="butt"
-                  fill="none" initial={false}
-                  animate={{ pathLength: phase === 'ribbons' || released ? 1 : 0, opacity: released ? 0 : begun ? 1 : 0 }}
-                  transition={{ duration: 1.05, ease }}/>
-                <motion.path d="M162 86 C209 100 233 110 271 143 C305 173 329 182 362 211"
-                  stroke="url(#gs6-silk-ribbon)" strokeWidth="22" strokeLinecap="butt"
-                  fill="none" initial={false}
-                  animate={{ pathLength: phase === 'ribbons' || released ? 1 : 0, opacity: released ? 0 : begun ? 1 : 0 }}
-                  transition={{ duration: 1.05, ease }}/>
+              {/* V-cut tails are flat satin with visible fold lines, never thick strokes */}
+              <g className="gs7-bow-tail-left">
+                <path d="M153 84 C131 102 107 130 63 168 L75 132 L42 139 C90 117 119 92 153 84Z"
+                  fill="url(#gs7-satin-tail)" stroke="#f6dba1" strokeWidth="1.2"/>
+                <path d="M147 89 C118 116 95 141 62 168" stroke="#fff0c4" strokeWidth="2.3" opacity=".63"/>
+                <path d="M75 132 L63 168 L88 140" stroke="#825329" strokeWidth="2" opacity=".54"/>
+              </g>
+              <g className="gs7-bow-tail-right">
+                <path d="M167 84 C189 102 213 130 257 168 L245 132 L278 139 C230 117 201 92 167 84Z"
+                  fill="url(#gs7-satin-tail)" stroke="#f6dba1" strokeWidth="1.2"/>
+                <path d="M173 89 C202 116 225 141 258 168" stroke="#fff0c4" strokeWidth="2.3" opacity=".63"/>
+                <path d="M245 132 L257 168 L232 140" stroke="#825329" strokeWidth="2" opacity=".54"/>
               </g>
 
-              <g className="gs6-silk-tails" filter="url(#gs6-silk-shadow)">
-                <motion.path d="M156 86 C137 109 116 136 65 165 L85 131 L47 135 C99 121 122 100 156 86 Z"
-                  fill="url(#gs6-silk-face)" stroke="#f6dfaf" strokeWidth="1.2"
-                  initial={false}
-                  animate={{ x: isReady ? 0 : phase === 'untie' ? -12 : -62,
-                    y: isReady ? 0 : phase === 'untie' ? 10 : 42, rotate: isReady ? 0 : phase === 'untie' ? -7 : -30,
-                    opacity: released ? 0 : 1 }}
-                  transition={{ duration: phase === 'untie' ? 1.05 : 1.25, ease }}/>
-                <motion.path d="M164 86 C183 109 204 136 255 165 L235 131 L273 135 C221 121 198 100 164 86 Z"
-                  fill="url(#gs6-silk-face)" stroke="#f6dfaf" strokeWidth="1.2"
-                  initial={false}
-                  animate={{ x: isReady ? 0 : phase === 'untie' ? 12 : 62,
-                    y: isReady ? 0 : phase === 'untie' ? 10 : 42, rotate: isReady ? 0 : phase === 'untie' ? 7 : 30,
-                    opacity: released ? 0 : 1 }}
-                  transition={{ duration: phase === 'untie' ? 1.05 : 1.25, ease }}/>
+              {/* Broad open loops with real negative space. Their cutouts prevent a pipe look. */}
+              <g className="gs7-bow-wing-left">
+                <path fillRule="evenodd"
+                  d="M159 82 C127 44 99 18 59 26 C24 34 22 76 54 98 C89 119 132 101 159 82 Z M135 79 C106 54 80 42 61 50 C47 56 47 73 64 83 C84 94 110 88 135 79 Z"
+                  fill="url(#gs7-gold-satin)" stroke="#e9c78b" strokeWidth="1.1"/>
+                <path d="M142 81 C117 71 94 54 76 49" stroke="#fff5d3" strokeWidth="3" opacity=".62" strokeLinecap="round"/>
+                <path d="M54 31 C42 45 41 73 58 91" stroke="#77471f" strokeWidth="2.5" opacity=".32" strokeLinecap="round"/>
+                <path d="M128 72 C133 76 141 82 150 84" stroke="url(#gs7-satin-back)" strokeWidth="9" opacity=".58"/>
+              </g>
+              <g className="gs7-bow-wing-right">
+                <path fillRule="evenodd"
+                  d="M161 82 C193 44 221 18 261 26 C296 34 298 76 266 98 C231 119 188 101 161 82 Z M185 79 C214 54 240 42 259 50 C273 56 273 73 256 83 C236 94 210 88 185 79 Z"
+                  fill="url(#gs7-gold-satin)" stroke="#e9c78b" strokeWidth="1.1"/>
+                <path d="M178 81 C203 71 226 54 244 49" stroke="#fff5d3" strokeWidth="3" opacity=".62" strokeLinecap="round"/>
+                <path d="M266 31 C278 45 279 73 262 91" stroke="#77471f" strokeWidth="2.5" opacity=".32" strokeLinecap="round"/>
+                <path d="M192 72 C187 76 179 82 170 84" stroke="url(#gs7-satin-back)" strokeWidth="9" opacity=".58"/>
               </g>
 
-              <g filter="url(#gs6-silk-shadow)">
-                <motion.path
-                  d={left.ready} initial={false}
-                  animate={{ d: left[shape], opacity: released ? 0 : 1 }}
-                  transition={{ d: { duration: phase === 'untie' ? 1.15 : 1.0, ease }, opacity: { duration: .5 } }}
-                  fill="url(#gs6-silk-face)" stroke="#f7dba7" strokeWidth="1.5"/>
-                <motion.path d={leftRidge.ready} initial={false}
-                  animate={{ d: leftRidge[shape], opacity: released ? 0 : .7 }}
-                  transition={{ duration: 1.1, ease }}
-                  stroke="#fff1ca" strokeWidth="3.6" strokeLinecap="round"/>
-                <motion.path d={right.ready} initial={false}
-                  animate={{ d: right[shape], opacity: released ? 0 : 1 }}
-                  transition={{ d: { duration: phase === 'untie' ? 1.15 : 1.0, ease }, opacity: { duration: .5 } }}
-                  fill="url(#gs6-silk-face)" stroke="#f7dba7" strokeWidth="1.5"/>
-                <motion.path d={rightRidge.ready} initial={false}
-                  animate={{ d: rightRidge[shape], opacity: released ? 0 : .7 }}
-                  transition={{ duration: 1.1, ease }}
-                  stroke="#fff1ca" strokeWidth="3.6" strokeLinecap="round"/>
+              {/* A small folded centre knot, not a thick circular tube */}
+              <g className="gs7-bow-centre">
+                <path d="M147 66 C155 62 166 62 174 68 L180 81 L172 96 C162 101 152 98 144 90 L140 80 Z"
+                  fill="url(#gs7-satin-back)" stroke="#ffeac0" strokeWidth="1.3"/>
+                <path d="M149 69 Q162 77 148 93" fill="none" stroke="#fff6d5" strokeWidth="4" opacity=".65"/>
+                <path d="M173 69 Q164 79 174 93" fill="none" stroke="#78491f" strokeWidth="2.5" opacity=".46"/>
               </g>
-
-              <motion.g filter="url(#gs6-silk-shadow)"
-                initial={false}
-                animate={{ scale: isReady ? 1 : phase === 'untie' ? .94 : .62,
-                  x: isReady ? 0 : phase === 'untie' ? 4 : 22, y: isReady ? 0 : phase === 'untie' ? 5 : 27,
-                  rotate: isReady ? 0 : phase === 'untie' ? 5 : 22, opacity: released ? 0 : 1 }}
-                transition={{ duration: 1.15, ease }} style={{ transformOrigin:'160px 82px' }}>
-                <path d="M145 64 Q159 55 176 64 C187 76 184 94 170 101 Q156 108 144 97 C135 86 134 73 145 64 Z"
-                  fill="url(#gs6-silk-fold)" stroke="#ffe2ae" strokeWidth="1.7"/>
-                <path d="M150 64 C158 72 160 91 156 101" stroke="#fff4d2" strokeWidth="4" opacity=".6"/>
-                <path d="M175 68 C172 75 176 88 168 98" stroke="#80502d" strokeWidth="2" opacity=".45"/>
-              </motion.g>
             </svg>
           </div>
           <div className="gs6-reveal-dust" aria-hidden="true" />
