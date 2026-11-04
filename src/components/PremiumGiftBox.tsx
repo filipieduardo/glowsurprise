@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { motion } from 'motion/react'
 
 export type OpeningPhase = 'idle' | 'untie' | 'lift' | 'reveal'
@@ -94,7 +95,7 @@ export default function PremiumGiftBox({ phase, onOpen }: Props) {
 
       <div className="gs2-release-burst" aria-hidden="true">
         {glints.map((glint, i) => (
-          <span key={i} style={{ '--p': i, animationDelay: glint.delay } as React.CSSProperties}>✦</span>
+          <span key={i} style={{ '--p': i, animationDelay: glint.delay } as CSSProperties}>✦</span>
         ))}
       </div>
       <div className="gs2-stage-floor" aria-hidden="true" />
