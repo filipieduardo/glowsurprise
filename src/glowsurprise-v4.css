@@ -1,0 +1,288 @@
+/* GlowSurprise V4 — editorial fitting, credible silk motion and quiet luxury.
+   Desktop-narrow Safari and phones use the same portrait stage. */
+
+/* 9:16 really means the whole card, not just the background. The usable height
+   determines the maximum width, so navigation and actions are not cut off. */
+.gs3-hero{
+  width:100%;
+  min-height:calc(100svh - 112px);
+  padding:4px 8px 12px;
+  display:flex;
+  justify-content:center;
+}
+.gs3-portrait{
+  width:min(440px, calc(100vw - 18px), calc((100dvh - 124px) * .5625));
+  max-width:100%;
+  min-height:0;
+  max-height:none;
+  height:auto;
+  aspect-ratio:9 / 16;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  justify-items:center;
+  align-items:stretch;
+  padding:clamp(16px,3vh,28px) 12px clamp(14px,2.2vh,24px);
+  box-shadow:inset 0 0 0 5px rgba(14,41,30,.40),
+    inset 0 0 0 6px rgba(220,179,99,.1),
+    0 24px 70px rgba(0,4,2,.44);
+}
+.gs3-portrait::before{inset:10px}
+.gs3-portrait-top{min-width:0}
+.gs3-ornament{height:14px}
+.gs3-kicker{font-size:clamp(7px,1vw,9px);margin:8px 0 5px;letter-spacing:.24em}
+.gs3-hero-headline{font-size:clamp(36px, min(9.5vw, 6.5vh), 59px);line-height:.98;max-width:320px}
+.gs3-hero-description{font-size:clamp(10px,1.6vh,12px);line-height:1.45;max-width:300px;margin:7px 0 0}
+.gs3-stage{width:100%;height:100%;min-height:0;align-self:stretch;position:relative}
+.gs3-gift-button{
+  width:100%;height:100%;min-height:0;max-height:none;
+  display:grid;place-items:center;touch-action:manipulation
+}
+.gs3-gift{
+  --gs4-gift-scale:.81;
+  position:absolute;left:50%;top:50%;
+  margin:0;
+  transform:translate(-50%,-50%) rotateY(-5deg) rotateX(3deg) scale(var(--gs4-gift-scale));
+  transform-origin:center center;
+  animation:gs4-floating 5.6s ease-in-out infinite;
+}
+.gs3-stage:not([data-phase=idle]) .gs3-gift{
+  animation:none;
+  transform:translate(-50%,-50%) rotateY(-5deg) rotateX(3deg) scale(var(--gs4-gift-scale));
+}
+.gs3-shadow{bottom:8%;width:56%;height:21px;filter:blur(13px)}
+.gs3-orbit-one{height:87%;width:85%}
+.gs3-orbit-two{height:72%;width:70%}
+.gs3-opening-caption{
+  bottom:1px;font-size:15px;min-height:18px;
+}
+.gs3-footer-actions{margin:0;gap:5px;width:100%;align-self:end;position:relative}
+.gs3-footer-actions .gs-primary-button{height:44px;min-height:44px;width:min(100%,275px);font-size:10px}
+.gs3-footer-note{font-size:clamp(14px,2.4vh,17px);line-height:1;margin:3px 0 0}
+.gs3-tap-cue{font-size:7px;letter-spacing:.14em;margin:0 0 2px}
+
+/* Taller ruby jewel box: no red side polygon or stray back panel. */
+.gs3-box-body{left:66px;top:150px;width:178px;height:252px}
+.gs3-box-back{left:66px;top:148px;width:178px;height:252px;box-shadow:inset 0 0 16px #21060b}
+.gs3-box-void{left:66px;top:142px;width:178px;height:33px}
+.gs3-box-right,.gs3-lid-right{display:none!important}
+.gs3-box-front{
+  background:
+    linear-gradient(118deg,rgba(255,209,197,.18),transparent 29%,rgba(22,0,8,.39) 75%,rgba(227,112,140,.12)),
+    linear-gradient(95deg,#9c2841,#8f1d36 38%,#621329 76%,#8d2840);
+  box-shadow:inset 7px 8px 21px #f5b6a71e,inset -13px -13px 27px #11030991,
+    0 5px 15px #0007;
+}
+.gs3-box-front::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  border-left:1px solid rgba(255,209,187,.16);border-right:1px solid rgba(25,0,13,.5);
+  border-bottom:4px solid rgba(35,2,14,.36);border-radius:inherit;
+}
+.gs3-lid{left:49px;top:109px;width:211px;height:68px;transform-origin:92% 81%}
+.gs3-lid-top{height:23px}
+.gs3-lid-front{height:45px}
+.gs3-envelope{left:77px;top:150px;width:158px;height:224px}
+.gs3-box-glow{left:65px;top:141px;width:178px;height:117px}
+.gs3-band-vertical{width:30px;left:calc(50% - 15px)}
+.gs3-band-horizontal{height:32px;top:44%}
+.gs3-lid-ribbon{width:30px;left:calc(50% - 15px)}
+.gs3-box-monogram{
+  width:63px;height:63px;
+  top:49%;gap:1px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'DM Sans',sans-serif;letter-spacing:.08em;
+}
+.gs4-seal-emblem{font-size:19px;line-height:1;color:#772b35}
+.gs4-seal-brand{
+  display:block;font:700 6.2px/1.13 'DM Sans',sans-serif;
+  letter-spacing:.105em;color:#5f2c2c;text-align:center;
+}
+.gs3-bow{top:54px;left:14px;width:277px;height:151px;filter:drop-shadow(0 3px 5px #18060b80)}
+.gs3-bow svg{overflow:visible}
+.gs3-bow-loop-left,.gs3-bow-loop-right,
+.gs3-bow-tail-left,.gs3-bow-tail-right,.gs3-bow-knot{
+  backface-visibility:hidden;
+  will-change:transform,opacity;
+}
+/* A ribbon does not explode: the loop loosens against the knot, the loose
+   ends travel along a drawn satin path, and then the ribbons slide off. */
+.gs4-unfurl-ribbons{pointer-events:none}
+.gs4-silk-trail,.gs4-silk-trail-highlight{
+  stroke-dasharray:400;
+  stroke-dashoffset:400;
+  opacity:0;
+}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-loop-left{
+  animation:gs4-loop-left 1.83s cubic-bezier(.2,.25,.36,1) both!important
+}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-loop-right{
+  animation:gs4-loop-right 1.83s cubic-bezier(.2,.25,.36,1) both!important
+}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-tail-left{
+  animation:gs4-tail-left 1.83s cubic-bezier(.2,.25,.36,1) both!important
+}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-tail-right{
+  animation:gs4-tail-right 1.83s cubic-bezier(.2,.25,.36,1) both!important
+}
+.gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-knot{
+  animation:gs4-knot-loosen 1.65s cubic-bezier(.2,.32,.45,1) both!important
+}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs4-silk-trail-left{
+  animation:gs4-unspool-left .93s ease-in-out both
+}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs4-silk-trail-right{
+  animation:gs4-unspool-right .97s ease-in-out both
+}
+.gs3-stage:is([data-phase=lift],[data-phase=reveal]) .gs4-unfurl-ribbons{
+  animation:gs4-silk-out .6s ease-in both
+}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-band-vertical{
+  animation:gs4-vertical-wrap 1.08s ease-in-out both!important
+}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-band-horizontal{
+  animation:gs4-horizontal-wrap 1.08s ease-in-out both!important
+}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-box-monogram{
+  animation:gs4-seal-release 1.03s ease-in both!important
+}
+.gs3-stage:is([data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-lid-ribbon{
+  animation:gs4-vertical-wrap 1.03s ease-in-out both!important
+}
+/* No confetti storm: the reveal is warm, gold and restrained. */
+.gs3-sparks span{font-size:9px;color:#ffdf9d}
+.gs3-star-field i{box-shadow:0 0 6px 1px #f4ce7640}
+@keyframes gs4-floating{
+  0%,100%{transform:translate(-50%,-50%) rotateY(-5deg) rotateX(3deg) translateY(4px) scale(var(--gs4-gift-scale))}
+  50%{transform:translate(-50%,-50%) rotateY(-3deg) rotateX(4deg) translateY(-5px) scale(var(--gs4-gift-scale))}
+}
+@keyframes gs4-loop-left{
+  0%{transform:translate(0,0) scale(1) rotate(0);opacity:1}
+  26%{transform:translate(-5px,6px) scaleX(1.06) rotate(-6deg);opacity:1}
+  60%{transform:translate(-17px,18px) scaleX(.77) scaleY(.88) rotate(-17deg);opacity:1}
+  84%{transform:translate(-32px,28px) scaleX(.40) scaleY(.58) rotate(-29deg);opacity:.70}
+  100%{transform:translate(-45px,38px) scaleX(.18) scaleY(.42) rotate(-30deg);opacity:0}
+}
+@keyframes gs4-loop-right{
+  0%{transform:translate(0,0) scale(1) rotate(0);opacity:1}
+  26%{transform:translate(5px,6px) scaleX(1.06) rotate(6deg);opacity:1}
+  60%{transform:translate(17px,18px) scaleX(.77) scaleY(.88) rotate(17deg);opacity:1}
+  84%{transform:translate(32px,28px) scaleX(.4) scaleY(.58) rotate(29deg);opacity:.70}
+  100%{transform:translate(45px,38px) scaleX(.18) scaleY(.42) rotate(30deg);opacity:0}
+}
+@keyframes gs4-tail-left{
+  0%{transform:translate(0,0) rotate(0) scale(1);opacity:1}
+  44%{transform:translate(-11px,14px) rotate(10deg) scaleY(1.15);opacity:1}
+  75%{transform:translate(-30px,38px) rotate(25deg) scaleY(1.20);opacity:.9}
+  100%{transform:translate(-68px,70px) rotate(52deg) scaleY(1.15);opacity:0}
+}
+@keyframes gs4-tail-right{
+  0%{transform:translate(0,0) rotate(0) scale(1);opacity:1}
+  44%{transform:translate(11px,14px) rotate(-10deg) scaleY(1.15);opacity:1}
+  75%{transform:translate(30px,38px) rotate(-25deg) scaleY(1.20);opacity:.9}
+  100%{transform:translate(68px,70px) rotate(-52deg) scaleY(1.15);opacity:0}
+}
+@keyframes gs4-knot-loosen{
+  0%{transform:translate(0,0) scale(1);opacity:1}
+  42%{transform:translate(7px,3px) scale(.94) rotate(7deg);opacity:1}
+  75%{transform:translate(18px,15px) scale(.7) rotate(18deg);opacity:1}
+  100%{transform:translate(28px,25px) scale(.48) rotate(26deg);opacity:0}
+}
+@keyframes gs4-unspool-left{
+  0%{stroke-dashoffset:400;opacity:.82}
+  20%{opacity:1}
+  100%{stroke-dashoffset:0;opacity:1}
+}
+@keyframes gs4-unspool-right{
+  0%{stroke-dashoffset:400;opacity:.82}
+  20%{opacity:1}
+  100%{stroke-dashoffset:0;opacity:1}
+}
+@keyframes gs4-silk-out{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(32px)}}
+@keyframes gs4-vertical-wrap{
+  0%{transform:translate(0,0);opacity:1}
+  36%{transform:translate(7px,9px) skew(-3deg);opacity:1}
+  100%{transform:translate(49px,270px) rotate(-16deg);opacity:0}
+}
+@keyframes gs4-horizontal-wrap{
+  0%{transform:translateX(0);opacity:1}
+  43%{transform:translateX(-18px) skewY(-3deg);opacity:1}
+  100%{transform:translateX(-180px) rotate(-15deg);opacity:0}
+}
+@keyframes gs4-seal-release{
+  0%{transform:translate(-50%,-50%) scale(1);opacity:1}
+  100%{transform:translate(15px,-80px) scale(.66) rotate(50deg);opacity:0}
+}
+
+/* The photo theatre must fit narrow Safari windows and preserve every image. */
+.gs3-memory-scene{
+  min-height:calc(100svh - 105px);
+  padding:18px 10px 28px;
+  display:flex;flex-direction:column;align-items:center;
+  overflow:visible;
+}
+.gs3-memory-scene .gs-memory-title{font-size:clamp(41px,9vw,62px);margin:10px 0 0}
+.gs3-memory-scene .gs-memory-intro{margin:5px 0 13px;max-width:350px;line-height:1.45}
+.gs3-memory-scene .gs2-memory-frame{
+  width:min(380px,calc(100vw - 35px),calc((100dvh - 315px) * .5625));
+  min-width:min(210px,calc(100vw - 35px));
+  aspect-ratio:9 / 16;
+  height:auto;
+  max-height:none;
+  position:relative;
+  padding:6px;
+  flex:0 0 auto;
+  box-shadow:0 18px 36px #0007;
+}
+.gs3-memory-scene .gs2-memory-inner{position:absolute;inset:6px;height:auto;width:auto;min-height:0}
+.gs3-memory-scene .gs2-memory-frame::before,
+.gs3-memory-scene .gs2-memory-frame::after{display:none}
+.gs3-memory-scene .gs2-frame-hint{font-size:9px;margin:10px 0 0;text-align:center}
+.gs3-memory-scene .gs-memory-controls{margin:8px 0 4px}
+.gs3-memory-scene>.gs-primary-button{margin-top:9px}
+.gs3-memory-scene .gs-memory-placeholder{padding:15px}
+.gs3-memory-scene .gs2-memory-placeholder h3{font-size:clamp(27px,6vw,43px)}
+.gs3-memory-scene .gs2-memory-placeholder p{font-size:clamp(15px,3.7vw,20px);max-width:240px}
+.gs3-memory-scene .gs2-memory-placeholder .gs-memory-ring{height:62px;width:62px;margin-bottom:12px}
+.gs3-letter-scene{padding:20px 11px 30px;min-height:calc(100svh - 105px)}
+.gs3-letter-scene .gs-letter-sheet{
+  width:min(390px,calc(100vw - 35px),calc((100dvh - 245px) * .5625));
+  min-width:min(220px,calc(100vw - 35px));
+  min-height:0;height:auto;aspect-ratio:9/16;
+}
+.gs3-letter-scene .gs-letter-message{max-height:36%;font-size:clamp(17px,4.1vw,25px)}
+.gs3-letter-scene .gs-letter-name{font-size:clamp(31px,7vw,52px)}
+.gs3-letter-scene .gs-letter-for{margin-top:11px}
+
+/* The actual viewport matters more than the breakpoint width. */
+@media(max-width:600px){
+  .gs3-hero{min-height:calc(100svh - 102px);padding:4px 7px 10px}
+  .gs3-portrait{
+    width:min(calc(100vw - 14px),calc((100dvh - 115px) * .5625));
+    aspect-ratio:9/16;min-height:0;max-height:none;
+    padding:clamp(14px,2.1vh,24px) 10px clamp(11px,2vh,20px)
+  }
+  .gs3-gift{--gs4-gift-scale:.77}
+  .gs3-hero-headline{font-size:clamp(35px,8vh,55px)}
+  .gs3-stage,.gs3-gift-button{min-height:0}
+  .gs3-footer-actions .gs-primary-button{min-height:42px;height:42px}
+}
+@media(max-width:390px){.gs3-gift{--gs4-gift-scale:.69}}
+@media(max-width:355px){.gs3-gift{--gs4-gift-scale:.62}}
+@media(max-height:720px){.gs3-gift{--gs4-gift-scale:.68}}
+@media(max-height:650px){
+  .gs3-kicker{margin:4px 0;font-size:7px}
+  .gs3-ornament{height:9px}
+  .gs3-hero-description{font-size:10px;margin:3px 0 0}
+  .gs3-hero-headline{font-size:38px}
+  .gs3-gift{--gs4-gift-scale:.59}
+  .gs3-footer-actions .gs-primary-button{height:38px;min-height:38px}
+  .gs3-footer-note{font-size:13px}
+}
+/* Preserve the static unwrapped composition for accessibility. */
+@media(prefers-reduced-motion:reduce){
+  .gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-loop-left,
+  .gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-loop-right,
+  .gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-tail-left,
+  .gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-tail-right,
+  .gs3-stage:is([data-phase=untie],[data-phase=ribbons],[data-phase=lift],[data-phase=reveal]) .gs3-bow-knot{
+    animation-duration:.01ms!important
+  }
+}
