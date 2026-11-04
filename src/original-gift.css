@@ -21,26 +21,22 @@
 .gs-original-present-button{
  position:relative;z-index:2;display:grid;place-items:center;
  width:300px;height:300px;background:none;border:0;padding:0;
- filter:drop-shadow(0 18px 22px #020e0b);
+ filter:drop-shadow(0 11px 14px rgba(14,3,9,.38));
 }
 .gs-original-present{
  position:relative;width:220px;height:217px;
  transform:rotate(-7deg) rotateX(8deg);
  animation:gs-original-hover 5s ease-in-out infinite;
 }
-.gs-original-present-shadow{
- position:absolute;width:200px;height:35px;border-radius:50%;
- background:#0007;bottom:26px;filter:blur(15px);
-}
 .gs-original-present-base{
  position:absolute;bottom:13px;left:18px;width:185px;height:160px;
  transform:skewY(-3deg);
 }
 .gs-original-present-front{
- position:absolute;inset:0;border:1px solid #587468;
+ position:absolute;inset:0;border:1px solid #a85c66;
  border-radius:3px 4px 7px 6px;
- background:linear-gradient(117deg,#224f41 0%,#14382e 27%,#0c2922 65%,#194538 100%);
- box-shadow:inset 9px 0 18px #fff1,inset -12px -10px 27px #0006,0 7px 15px #0006;
+ background:linear-gradient(117deg,#a44053 0%,#81263e 28%,#491428 68%,#6b2138 100%);
+ box-shadow:inset 9px 0 18px rgba(255,214,205,.12),inset -12px -10px 27px rgba(17,2,10,.55),0 7px 15px rgba(0,0,0,.25);
 }
 /* No .gs-original-present-side: explicitly removed as requested. */
 .gs-original-ribbon-vertical{
@@ -58,18 +54,18 @@
  display:grid;place-items:center;width:50px;height:50px;
  border:1px solid #f8e5b2;border-radius:50%;
  background:radial-gradient(circle,#ddc38b,#a77a34);
- color:#264338;font-size:26px;line-height:1;
+ color:#602238;font-size:26px;line-height:1;
  box-shadow:0 4px 15px #0005;
 }
 .gs-original-present-lid{
  position:absolute;top:17px;left:7px;width:208px;height:49px;
- background:linear-gradient(125deg,#285a48,#153b2e);
- border:1px solid #678374;border-radius:5px;
+ background:linear-gradient(125deg,#a23b50,#5b182e);
+ border:1px solid #ae6170;border-radius:5px;
  box-shadow:0 7px 9px #0005;
  transform:rotate(-2deg);transform-origin:95% 95%;z-index:3;
 }
 .gs-original-lid-face{
- position:absolute;inset:0;border-bottom:8px solid #0a261c;
+ position:absolute;inset:0;border-bottom:8px solid #441024;
 }
 .gs-original-lid-ribbon{
  position:absolute;left:calc(50% - 17px);top:0;bottom:0;width:34px;
@@ -100,11 +96,6 @@
 }
 .gs-original-unwrapping .gs-original-present-light{
  animation:gs-original-light-up 1.25s ease-out forwards;
-}
-.gs-original-floor-glow{
- position:absolute;bottom:20px;width:290px;height:37px;
- border-radius:50%;background:#d3a95430;filter:blur(25px);
- pointer-events:none;
 }
 @keyframes gs-original-hover{
  50%{transform:translateY(-10px) rotate(-5deg) rotateX(8deg)}
