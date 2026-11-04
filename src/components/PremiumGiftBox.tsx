@@ -24,7 +24,6 @@ export default function PremiumGiftBox({ phase, onOpen }: Props) {
         aria-label="Unwrap your Christmas present"
         disabled={opening}
       >
-        <div className="gs-original-present-shadow" aria-hidden="true" />
         <div className="gs-original-present">
           <div className="gs-original-present-base">
             <div className="gs-original-present-front">
@@ -42,7 +41,6 @@ export default function PremiumGiftBox({ phase, onOpen }: Props) {
           <div className="gs-original-present-light" aria-hidden="true" />
         </div>
       </button>
-      <div className="gs-original-floor-glow" aria-hidden="true" />
     </div>
   )
 }
