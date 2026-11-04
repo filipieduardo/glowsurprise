@@ -5,6 +5,7 @@ import PremiumGiftBox from './components/PremiumGiftBox'
 import type { OpeningPhase } from './components/PremiumGiftBox'
 import './glowsurprise.css'
 import './glowsurprise-v2.css'
+import './glowsurprise-v3.css'
 
 type Scene = 'gift' | 'letter' | 'memories' | 'final'
 type Photo = { url: string; name: string }
@@ -96,18 +97,30 @@ function App() {
     event.target.value = ''
   }
 
-  // The physical gift reveals in beats; no generic fade-to-next-scene.
+  // Cinematic choreography: the actual silk bow loosens, the wrap peels away,
+  // the lid opens and the letter rises. Keep every beat visible before scene change.
   const unwrap = () => {
     if (opening) return
     setOpening(true)
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      setOpeningPhase('reveal')
+      openingTimers.current.push(window.setTimeout(() => {
+        setScene('letter')
+        setOpening(false)
+        setOpeningPhase('idle')
+      }, 450))
+      return
+    }
     setOpeningPhase('untie')
-    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('lift'), 780))
-    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('reveal'), 2100))
+    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('ribbons'), 900))
+    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('lift'), 1700))
+    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('reveal'), 2870))
     openingTimers.current.push(window.setTimeout(() => {
       setScene('letter')
       setOpening(false)
       setOpeningPhase('idle')
-    }, 3550))
+    }, 4520))
   }
 
   useEffect(() => () => { openingTimers.current.forEach(window.clearTimeout) }, [])
@@ -167,28 +180,34 @@ function App() {
           {scene === 'gift' && (
             <motion.section
               key="gift"
-              className="gs-scene gs2-gift-scene"
-              initial={{ opacity: 0, y: 25 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 1.2, y: -65, filter: 'brightness(1.4)' }}
-              transition={{ duration: 0.85, ease: [0.18, 0.8, 0.2, 1] }}
+              className="gs-scene gs3-hero"
+              initial={{ y: 18, scale: 0.98 }}
+              animate={{ y: 0, scale: 1 }}
+              exit={{ y: -60, scale: 1.04, filter: 'brightness(1.25)' }}
+              transition={{ duration: 0.7, ease: [0.19, 0.8, 0.26, 1] }}
               aria-label="Your Christmas surprise"
             >
-              <p className="gs2-chapter">THE CHRISTMAS COLLECTION · 2026</p>
-              <h1 className="gs2-hero-title">A gift wrapped in <em>wonder.</em></h1>
-              <p className="gs2-hero-subtitle">Someone has made something extraordinary, just for you.</p>
-              <PremiumGiftBox phase={openingPhase} onOpen={unwrap} />
-              <div className="gs2-gift-action">
-                <button className="gs-primary-button" type="button" onClick={unwrap} disabled={opening}>
-                  {opening ? 'Unwrapping your surprise…' : 'Unwrap your surprise'}
-                  <span aria-hidden="true">✧</span>
-                </button>
-                <p className="gs2-gift-footnote">The most beautiful gifts are personal.</p>
+              <div className="gs3-portrait">
+                <div className="gs3-portrait-top">
+                  <span className="gs3-ornament" aria-hidden="true">✦</span>
+                  <p className="gs3-kicker">AN ENCHANTED CHRISTMAS · 2026</p>
+                  <h1 className="gs3-hero-headline">Wrapped in <em>wonder.</em></h1>
+                  <p className="gs3-hero-description">Some gifts are too beautiful to stay wrapped.</p>
+                </div>
+                <PremiumGiftBox phase={openingPhase} onOpen={unwrap} />
+                <div className="gs3-footer-actions">
+                  <p className="gs3-tap-cue">A SURPRISE FROM SOMEONE SPECIAL</p>
+                  <button className="gs-primary-button" type="button" onClick={unwrap} disabled={opening}>
+                    {opening ? 'Your gift is opening…' : 'Unwrap your surprise'}
+                    <span aria-hidden="true">✧</span>
+                  </button>
+                  <p className="gs3-footer-note">Made personal. Remembered forever.</p>
+                </div>
               </div>
             </motion.section>
           )}
           {scene === 'letter' && (
-            <motion.section key="letter" className="gs-scene gs-letter-scene gs2-letter-scene" initial={{ opacity: 0.7, y: 95, rotateX: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }} exit={{ opacity: 0, y: -60, rotateX: 9, scale: 0.95 }} transition={{ duration: 0.9, ease: [0.17, 0.8, 0.2, 1] }}>
+            <motion.section key="letter" className="gs-scene gs-letter-scene gs2-letter-scene gs3-letter-scene" initial={{ y: 105, rotateX: -22, scale: 0.88 }} animate={{ y: 0, rotateX: 0, scale: 1 }} exit={{ y: -70, rotateX: 9, scale: 0.93 }} transition={{ duration: 0.9, ease: [0.17, 0.8, 0.2, 1] }}>
               <p className="gs-eyebrow"><span className="gs-line" /> A NOTE FROM THE HEART <span className="gs-line" /></p>
               <div className="gs-letter-backlight" aria-hidden="true" />
               <div className="gs-letter-sheet">
@@ -207,7 +226,7 @@ function App() {
             </motion.section>
           )}
           {scene === 'memories' && (
-            <motion.section key="memories" className="gs-scene gs-memory-scene gs2-memory-scene" initial={{ opacity: 0.3, y: 80, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -50, scale: 0.98 }} transition={{ duration: 0.85, ease: [0.17, 0.8, 0.2, 1] }}>
+            <motion.section key="memories" className="gs-scene gs-memory-scene gs2-memory-scene gs3-memory-scene" initial={{ opacity: 0.3, y: 80, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -50, scale: 0.98 }} transition={{ duration: 0.85, ease: [0.17, 0.8, 0.2, 1] }}>
               <p className="gs-eyebrow"><span className="gs-line" /> OUR MOST TREASURED THINGS <span className="gs-line" /></p>
               <h2 className="gs-memory-title">The moments that <em>glow.</em></h2>
               <p className="gs-memory-intro">{hasMemories ? 'Every memory deserves a little magic.' : 'A beautiful place for your own photos, videos and stories.'}</p>
@@ -268,7 +287,7 @@ function App() {
             </motion.section>
           )}
           {scene === 'final' && (
-            <motion.section key="final" className="gs-scene gs-finale-scene gs2-finale-scene" initial={{ opacity: 0.2, scale: 0.86, y: 85 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.08 }} transition={{ duration: 1.1, ease: [0.16, 0.8, 0.2, 1] }}>
+            <motion.section key="final" className="gs-scene gs-finale-scene gs2-finale-scene gs3-finale-scene" initial={{ opacity: 0.2, scale: 0.86, y: 85 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.08 }} transition={{ duration: 1.1, ease: [0.16, 0.8, 0.2, 1] }}>
               <div className="gs-finale-wreath" aria-hidden="true"><Sparkle size={60}/></div>
               <p className="gs-eyebrow"><span className="gs-line" /> FROM MY HEART TO YOURS <span className="gs-line" /></p>
               <h2 className="gs-finale-heading">The best gifts <em>stay with us.</em></h2>
