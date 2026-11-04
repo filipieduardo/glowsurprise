@@ -4,6 +4,7 @@ import type { ChangeEvent, CSSProperties, TouchEvent } from 'react'
 import PremiumGiftBox from './components/PremiumGiftBox'
 import type { OpeningPhase } from './components/PremiumGiftBox'
 import './glowsurprise-v5.css'
+import './glowsurprise-v6.css'
 
 type Scene = 'gift' | 'letter' | 'memories' | 'final'
 type Uploaded = { url: string; name: string }
@@ -206,8 +207,8 @@ export default function GlowSurprise() {
             <Garland/>
             <div className="gs5-world-top">
               <p className="gs5-eyebrow">A CHRISTMAS SURPRISE · MADE PERSONAL</p>
-              <h1>Some gifts are<br/><em>unforgettable.</em></h1>
-              <p className="gs5-opening-lead">A little Christmas magic, made just for you.</p>
+              <h1>Unwrap a little<br/><em>Christmas magic.</em></h1>
+              <p className="gs5-opening-lead">A Christmas gift that reveals your favourite memories.</p>
             </div>
             <div className="gs5-world-middle">
               <div className="gs5-bauble gs5-bauble-left" aria-hidden="true"/><div className="gs5-bauble gs5-bauble-right" aria-hidden="true"/>
@@ -219,7 +220,7 @@ export default function GlowSurprise() {
                 {phase==='ready'?'Unwrap your surprise':phase==='reveal'?'Open your Christmas card':'Unwrapping your present…'}
                 <span aria-hidden="true">↗</span>
               </button>
-              <p className="gs5-quiet">Made with love, shared with a little glow.</p>
+              <p className="gs5-quiet">The gift is only the beginning.</p>
             </div>
           </div>
         </motion.section>}
