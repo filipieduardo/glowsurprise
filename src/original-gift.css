@@ -1,0 +1,135 @@
+/* Restored FIRST GlowSurprise gift from the original November prototype.
+   Original geometry and animation, except the protruding side panel is removed.
+   Scoped to prevent styles from the subsequent redesigns affecting the gift. */
+.gs-first-gift-stage{
+ position:relative;width:min(100%,460px);height:342px;min-height:0;
+ display:grid;place-items:center;margin:0 auto;perspective:850px;
+}
+.gs-original-aura{
+ position:absolute;width:300px;height:300px;border-radius:50%;
+ background:radial-gradient(circle,rgba(235,194,113,.19),transparent 65%);
+ filter:blur(20px);pointer-events:none;
+}
+.gs-original-orbit{
+ position:absolute;color:#e9d7a6;opacity:.65;
+ animation:gs-original-twinkle 3s ease-in-out infinite;pointer-events:none;
+ font-size:15px;
+}
+.gs-original-orbit-one{left:12%;top:20%}
+.gs-original-orbit-two{right:11%;top:33%;animation-delay:1s;font-size:12px}
+.gs-original-orbit-three{left:20%;bottom:15%;animation-delay:1.5s}
+.gs-original-present-button{
+ position:relative;z-index:2;display:grid;place-items:center;
+ width:300px;height:300px;background:none;border:0;padding:0;
+ filter:drop-shadow(0 18px 22px #020e0b);
+}
+.gs-original-present{
+ position:relative;width:220px;height:217px;
+ transform:rotate(-7deg) rotateX(8deg);
+ animation:gs-original-hover 5s ease-in-out infinite;
+}
+.gs-original-present-shadow{
+ position:absolute;width:200px;height:35px;border-radius:50%;
+ background:#0007;bottom:26px;filter:blur(15px);
+}
+.gs-original-present-base{
+ position:absolute;bottom:13px;left:18px;width:185px;height:160px;
+ transform:skewY(-3deg);
+}
+.gs-original-present-front{
+ position:absolute;inset:0;border:1px solid #587468;
+ border-radius:3px 4px 7px 6px;
+ background:linear-gradient(117deg,#224f41 0%,#14382e 27%,#0c2922 65%,#194538 100%);
+ box-shadow:inset 9px 0 18px #fff1,inset -12px -10px 27px #0006,0 7px 15px #0006;
+}
+/* No .gs-original-present-side: explicitly removed as requested. */
+.gs-original-ribbon-vertical{
+ position:absolute;top:0;bottom:0;left:calc(50% - 15px);
+ width:30px;background:linear-gradient(90deg,#86602e,#f8dea0 42%,#b28b4f 70%,#7b5529);
+ box-shadow:0 0 9px #0003;
+}
+.gs-original-ribbon-horizontal{
+ position:absolute;top:42%;left:0;right:0;height:32px;
+ background:linear-gradient(180deg,#9f7738,#f2d18e 43%,#9d743f);
+ box-shadow:0 3px 8px #0003;
+}
+.gs-original-present-crest{
+ position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ display:grid;place-items:center;width:50px;height:50px;
+ border:1px solid #f8e5b2;border-radius:50%;
+ background:radial-gradient(circle,#ddc38b,#a77a34);
+ color:#264338;font-size:26px;line-height:1;
+ box-shadow:0 4px 15px #0005;
+}
+.gs-original-present-lid{
+ position:absolute;top:17px;left:7px;width:208px;height:49px;
+ background:linear-gradient(125deg,#285a48,#153b2e);
+ border:1px solid #678374;border-radius:5px;
+ box-shadow:0 7px 9px #0005;
+ transform:rotate(-2deg);transform-origin:95% 95%;z-index:3;
+}
+.gs-original-lid-face{
+ position:absolute;inset:0;border-bottom:8px solid #0a261c;
+}
+.gs-original-lid-ribbon{
+ position:absolute;left:calc(50% - 17px);top:0;bottom:0;width:34px;
+ background:linear-gradient(90deg,#93703b,#f5dc9a 47%,#98703d);
+}
+.gs-original-bow{
+ position:absolute;top:-38px;width:70px;height:47px;
+ border:12px solid #d6b575;border-radius:80% 12% 80% 12%;
+ box-shadow:inset 0 3px 9px #0003,0 3px 6px #0004;
+}
+.gs-original-bow-left{left:39px;transform:rotate(28deg)}
+.gs-original-bow-right{right:37px;transform:rotate(64deg)}
+.gs-original-knot{
+ position:absolute;width:30px;height:22px;
+ left:calc(50% - 15px);top:-12px;border-radius:8px;
+ background:linear-gradient(130deg,#ffedb5,#ae8246);
+ box-shadow:0 4px 9px #0004;
+}
+.gs-original-present-light{
+ position:absolute;left:10%;right:10%;top:35%;height:60px;
+ background:#e2c37b;filter:blur(27px);opacity:0;pointer-events:none;
+}
+.gs-original-unwrapping .gs-original-present{
+ animation:gs-original-unbox-shake .5s ease-in-out;
+}
+.gs-original-unwrapping .gs-original-present-lid{
+ animation:gs-original-lid-launch 1.3s ease-in forwards;
+}
+.gs-original-unwrapping .gs-original-present-light{
+ animation:gs-original-light-up 1.25s ease-out forwards;
+}
+.gs-original-floor-glow{
+ position:absolute;bottom:20px;width:290px;height:37px;
+ border-radius:50%;background:#d3a95430;filter:blur(25px);
+ pointer-events:none;
+}
+@keyframes gs-original-hover{
+ 50%{transform:translateY(-10px) rotate(-5deg) rotateX(8deg)}
+}
+@keyframes gs-original-twinkle{
+ 50%{opacity:.2;transform:scale(.7)}
+}
+@keyframes gs-original-unbox-shake{
+ 25%{transform:translateX(-5px) rotate(-7deg)}
+ 75%{transform:translateX(4px) rotate(-4deg)}
+}
+@keyframes gs-original-lid-launch{
+ 0%{transform:rotate(-2deg)}
+ 35%{transform:translateY(-12px) rotate(-8deg)}
+ 100%{transform:translate(-60px,-140px) rotate(-33deg);opacity:0}
+}
+@keyframes gs-original-light-up{
+ 25%{opacity:.5}70%{opacity:.95}100%{opacity:0}
+}
+@media(max-width:600px){
+ .gs-first-gift-stage{height:315px}
+ .gs-original-present-button{transform:scale(.87)}
+}
+@media(prefers-reduced-motion:reduce){
+ .gs-first-gift-stage *,
+ .gs-first-gift-stage *::before,
+ .gs-first-gift-stage *::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
