@@ -1,83 +1,48 @@
-# Birthday Experience
+# GlowSurprise — cinematic Christmas preview
 
-A private-feeling, phone-first **interactive birthday web app** — a template you
-can fork and make your own. It unfolds like a gift opening in stages: a sealed
-invitation, a time-lock, a password, a delivery, an unwrapping, a cake with
-candle-blowing, ten gifts, a tic-tac-toe reveal, personal notes, and a keepsake
-booklet she can download from.
+A private, mobile-first Christmas gift: a burgundy square 3D present opens into a personal letter, photo/video memories, and a final message. This branch is a reviewable prototype. It does not integrate with Shopify, save gifts to a server, or create shareable gift links.
 
-Styled with a **Chinese-cinematic** aesthetic — ink night, cinnabar red and
-imperial gold, with lanterns, plum blossoms, seal chops, moon gates and scrolls —
-but every colour and word is yours to change.
+## Run locally
 
-## The journey (scene by scene)
-1. **Sealed invitation** — a red envelope with a chop seal and a live countdown.
-2. **Time lock** — stays sealed until a set date/time, read from the real clock.
-3. **Password** — a birth-year gate, framed in a moon gate.
-4. **Delivery** — a courier arrives; she takes the parcel.
-5. **Unwrap** — the parcel opens to a magazine cover in a moon gate.
-6. **Cake** — balloons rise to reveal her photo and a cake; candles blow out by
-   **microphone or tap**, with a gentle three-try gag.
-7. **Applause** — the mic drops.
-8. **Ten gifts** — each worth 2 points, the tally climbing.
-9. **Reveal** — tic-tac-toe (*play with me* / *play alone*); win, lose or draw,
-   the cards flip to "Happy Birthday" and the 2 × 10 clue.
-10. **Notes → the scroll ties shut → a keepsake booklet** with save buttons.
-
-## No-code builder — no code, just a friendly chat
-Open the page with **`#build`** on the end of the URL. The live demo is at
-`https://niki-co.github.io/birthday-experience/#build`.
-
-A friendly chat then asks for everything — the name, the date it unlocks, the
-password, the photos, the song and all ten gifts — and generates a
-**personalised page you download as a single file**. No code, no files to edit.
-
-## Quick start
-```bash
-npm install
-npm run build          # -> dist/
-node make-single.mjs   # -> dist/Ananya-Birthday.html (one self-contained file)
+```sh
+npm ci
+npm run build
+npm run preview
+# http://127.0.0.1:4173
 ```
-Then open `dist/index.html`, or serve `dist/` with any static server.
 
-## Make it yours — everything is in one file
-Open **`src/content.json`**. That is the whole edit surface — no code required.
-The important fields:
+`npm run dev` runs the Vite development server. Production uses esbuild, as before. All production media, fonts and graphics are local. `npm run build:portable` also produces a self-contained HTML preview; pass a destination to `node scripts/portable.mjs /path/preview.html` when outside the original workspace.
 
-| Field | What it is |
-|---|---|
-| `meta.name` / `meta.from` | her name, your name |
-| `invitation.unlockISO` | the date & time it opens, e.g. `"2026-12-31T00:00:00+05:30"` (empty = opens immediately) |
-| `invitation.photos` | images for the little TV beside the letter |
-| `password.answer` | the password (her birth year by default) |
-| `celebration.photo` | the photo revealed at the cake |
-| `gifts[]` | the ten gifts — jar stars, certificate, mixtape, photo booth, magazine, reel, coupons, archive, stickers, spinner |
-| `notes.items` | your personal notes |
-| `keepsakes.items` | the files she can download at the end |
+## Design and implementation
 
-Media paths are just URLs or local paths, e.g. `"src": "media/her-photo.jpg"`.
+- Original square 3D box, hollow interior, beveled lid and broad folded ribbon surfaces; no TubeGeometry, label, medallion, extra side panel or oval ground shadow.
+- Three.js loaded separately. Procedural studio environment, original geometry and paper texture; no purchased models or externally hosted HDRIs.
+- Warm ivory typography on deep green, quiet layered snow, four chapters. Personal content defaults live in `src/content.json` → `glowsurprise`.
+- Local photo/video previews using object URLs, explicit size/type checks, removal controls and URL cleanup. No network upload. Reloading clears personalization.
+- Keyboard controls, native modal dialog with focus management, reduced motion and snow pause. Static image fallback if WebGL fails. No automatic video playback.
+- Renderer draws on demand at rest, suspends on a hidden tab, caps pixel density at 1.75, and disposes GPU resources between scenes.
 
-## Features
-- **Resumes** — progress and points are saved in the browser, so she can pause
-  and come back.
-- **Real time-lock** — sealed until the date, checked against a real clock.
-- **Candle blowing** — microphone input, with a tap fallback so it never breaks.
-- **Rich motion** — lanterns sway, petals fall, stars unfold, cards flip, the
-  scroll rolls shut. All of it respects `prefers-reduced-motion`.
-- **Phone-first** — designed for a small screen, one column, thumb-friendly.
+## Verification
 
-## Deploy
-Any static host works — Vercel, Netlify, Cloudflare Pages, GitHub Pages, or just
-send the single HTML file.
+```sh
+npm run typecheck
+npm run lint
+npm run build
+npx playwright install webkit
+npm run preview           # leave running in another terminal
+npm run test:preview
+```
 
-> **A note on privacy.** If your photos and videos are personal, do **not** put
-> them on a public host. Either send the single file directly, or host it behind
-> access control (for example **Cloudflare Pages + Cloudflare Access**, which is
-> free and locks the link to specific family emails).
+The browser checks currently use installed Chrome at the macOS application path and Playwright WebKit. Adapt `executablePath` for other hosts. Test uploads are generated, non-personal fixtures. Tests cover viewport overflow, WCAG A/AA automated checks, keyboard focus, personalization, photo decoding, video playback, replay, timer cancellation, reduced motion, no-WebGL fallback and the WebKit journey. `scripts/review.mjs` captures all scenes; its output directory can be changed for other workspaces. `scripts/capture.mjs` compares against a baseline served on port 4172.
 
-## Tech
-React + TypeScript · Tailwind CSS (via PostCSS) · Motion · dnd-kit · built with
-**esbuild** (the build script is `build.mjs`).
+## Boundaries and limitations
 
-## License
-MIT — see [LICENSE](LICENSE). Replace `[Your Name]` in it with your own.
+This is original real-time 3D art, not a photoreal offline commercial render. The ribbon is choreographed fabric geometry, not a cloth simulation or physically accurate untying rig. Browser tests at iPhone dimensions and WebKit are not tests on a physical iPhone; battery, thermal behavior, older devices and iOS codecs still need device validation. Sample artwork is explicitly labeled; no personal memories are bundled. Sharing, permanent storage and Shopify integration remain future work.
+
+No deployment workflow was modified or triggered. The Pages workflow is still limited to `main` pushes or manual dispatch; this branch must not be merged/deployed without approval.
+
+## Licenses
+
+The original model, generated textures, sample artwork and new code follow the repository MIT license. Runtime dependency notices are preserved in `public/THIRD-PARTY-NOTICES.txt`. Cormorant Garamond is bundled under SIL OFL 1.1 (`public/fonts/OFL.txt`). All added resources are free for commercial use under their respective licenses. No image generation, stock-media subscription, audio track, paid model or CDN service is required.
+
+Legacy birthday scenes and old styles remain in source for reference; they are not imported by the Christmas entry point or included in its build.

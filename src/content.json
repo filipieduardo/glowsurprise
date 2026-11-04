@@ -64,12 +64,30 @@
       "blurb": "Twenty folded stars. Every one hides something.",
       "from": "[You]",
       "stars": [
-        { "type": "note", "text": "You are, objectively, the best thing this family has ever produced. Sorry to everyone else." },
-        { "type": "wish", "text": "May you always find money in old jacket pockets." },
-        { "type": "dare", "text": "DARE: send me the last photo in your camera roll. No deleting first." },
-        { "type": "note", "text": "Remember the wedding? You danced like nobody was watching. Nobody was. It was glorious." },
-        { "type": "photo", "src": "" },
-        { "type": "wish", "text": "May your chai always be exactly the right temperature." }
+        {
+          "type": "note",
+          "text": "You are, objectively, the best thing this family has ever produced. Sorry to everyone else."
+        },
+        {
+          "type": "wish",
+          "text": "May you always find money in old jacket pockets."
+        },
+        {
+          "type": "dare",
+          "text": "DARE: send me the last photo in your camera roll. No deleting first."
+        },
+        {
+          "type": "note",
+          "text": "Remember the wedding? You danced like nobody was watching. Nobody was. It was glorious."
+        },
+        {
+          "type": "photo",
+          "src": ""
+        },
+        {
+          "type": "wish",
+          "text": "May your chai always be exactly the right temperature."
+        }
       ]
     },
     {
@@ -185,5 +203,28 @@
     "title": "We forgot to pack these",
     "message": "Everything from tonight, in one place. Take whatever you want home with you.",
     "items": []
+  },
+  "glowsurprise": {
+    "recipient": "Someone special",
+    "sender": "With all my love",
+    "message": "Of all the moments this year, my favourites have you in them.\n\nHere’s to the little things. The laughter. The days we wished would last forever.\n\nAnd all the memories we have yet to make.",
+    "year": "2026",
+    "demoStories": [
+      {
+        "title": "The places we remember",
+        "line": "Somewhere beautiful. Someone you love.",
+        "color": "#c4b6a3"
+      },
+      {
+        "title": "The little things",
+        "line": "The quiet moments that meant everything.",
+        "color": "#c4ac8c"
+      },
+      {
+        "title": "Everything still to come",
+        "line": "Our next chapter is waiting.",
+        "color": "#809c9a"
+      }
+    ]
   }
 }
