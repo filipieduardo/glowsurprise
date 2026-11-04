@@ -38,6 +38,16 @@ function App() {
   const [formMessage, setFormMessage] = useState('')
   const photoInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
+  const objectUrls = useRef<Set<string>>(new Set())
+  const makeUrl = (file: File) => {
+    const url = URL.createObjectURL(file)
+    objectUrls.current.add(url)
+    return url
+  }
+  const discardUrl = (url: string) => {
+    URL.revokeObjectURL(url)
+    objectUrls.current.delete(url)
+  }
   const memories: Memory[] = useMemo(() => [
     ...photos.map((p) => ({ kind: 'image' as const, url: p.url, label: p.name })),
     ...(video ? [{ kind: 'video' as const, url: video.url, label: video.name }] : []),
@@ -47,23 +57,22 @@ function App() {
   const activeMoment = ((memoryIndex % totalMoments) + totalMoments) % totalMoments
 
   useEffect(() => {
-    return () => {
-      photos.forEach((p) => URL.revokeObjectURL(p.url))
-      if (video) URL.revokeObjectURL(video.url)
-    }
-  }, [photos, video])
+    const urls = objectUrls.current
+    return () => { urls.forEach((url) => URL.revokeObjectURL(url)); urls.clear() }
+  }, [])
 
   const handlePhotos = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? [])
     if (!files.length) return
-    const valid = files.filter((file) => file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024).slice(0, 8)
+    const valid = files.filter((file) => file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024).slice(0, 10)
     if (!valid.length) {
       setFormMessage('Choose images smaller than 10 MB each.')
       return
     }
-    setPhotos(valid.map((file) => ({ url: URL.createObjectURL(file), name: file.name })))
+    photos.forEach((photo) => discardUrl(photo.url))
+    setPhotos(valid.map((file) => ({ url: makeUrl(file), name: file.name })))
     setMemoryIndex(0)
-    setFormMessage(valid.length < files.length ? 'Some files were skipped. You can add up to 8 photos, 10 MB each.' : 'Photos loaded in your browser preview.')
+    setFormMessage(valid.length < files.length ? 'Some files were skipped. You can add up to 10 photos, 10 MB each.' : 'Photos loaded in your browser preview.')
     event.target.value = ''
   }
 
@@ -74,7 +83,8 @@ function App() {
       setFormMessage('Choose a video smaller than 20 MB.')
       return
     }
-    setVideo({ url: URL.createObjectURL(file), name: file.name })
+    if (video) discardUrl(video.url)
+    setVideo({ url: makeUrl(file), name: file.name })
     setMemoryIndex(0)
     setFormMessage('Video added to your browser preview.')
     event.target.value = ''
@@ -249,7 +259,7 @@ function App() {
                 <p className="gs-field-heading">YOUR FAVOURITE MEMORIES</p>
                 <input ref={photoInput} type="file" multiple accept="image/*" onChange={handlePhotos} hidden/>
                 <input ref={videoInput} type="file" accept="video/*" onChange={handleVideo} hidden/>
-                <button type="button" onClick={() => photoInput.current?.click()}><span>＋</span> {photos.length ? 'Replace photos' : 'Add photos'} <small>Up to 8 · 10 MB each</small></button>
+                <button type="button" onClick={() => photoInput.current?.click()}><span>＋</span> {photos.length ? 'Replace photos' : 'Add photos'} <small>Up to 10 · 10 MB each</small></button>
                 <button type="button" onClick={() => videoInput.current?.click()}><span>▻</span> {video ? 'Replace video' : 'Add a video'} <small>1 video · 20 MB max</small></button>
                 {(photos.length > 0 || video) && <p className="gs-upload-count">{photos.length} photo{photos.length === 1 ? '' : 's'} {video ? '· 1 video' : ''} loaded</p>}
                 {formMessage && <p className="gs-upload-notice" role="status">{formMessage}</p>}
