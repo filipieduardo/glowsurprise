@@ -1,345 +1,317 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import type { CSSProperties, ChangeEvent, TouchEvent } from 'react'
+import type { ChangeEvent, CSSProperties, TouchEvent } from 'react'
 import PremiumGiftBox from './components/PremiumGiftBox'
 import type { OpeningPhase } from './components/PremiumGiftBox'
-import './glowsurprise.css'
-import './glowsurprise-v2.css'
-import './glowsurprise-v3.css'
-import './glowsurprise-v4.css'
+import './glowsurprise-v5.css'
 
 type Scene = 'gift' | 'letter' | 'memories' | 'final'
-type Photo = { url: string; name: string }
-type Memory = { kind: 'image' | 'video'; url: string; label: string }
-
-const snow = Array.from({ length: 31 }, (_, i) => ({
-  left: ((i * 37 + 11) % 97) + '%',
-  delay: ((i * 13) % 29) / -3 + 's',
-  duration: 8 + ((i * 7) % 10) + 's',
-  size: 2 + ((i * 11) % 4) + 'px',
-  opacity: 0.27 + ((i * 3) % 7) / 14,
-}))
-
-const demoMoments = [
-  { index: '01', title: 'The little moments', detail: 'that made this year unforgettable' },
-  { index: '02', title: 'The stories we share', detail: 'and the ones we carry with us' },
-  { index: '03', title: 'More memories to come', detail: 'this Christmas and beyond' },
+type Uploaded = { url: string; name: string }
+type Memory = { kind: 'image' | 'video'; url: string; name: string }
+const demoStories = [
+  { title: 'The moments that matter', subtitle: 'Every picture tells a little story.' },
+  { title: 'Our favourite chapters', subtitle: 'The laughs, the little things, the love.' },
+  { title: 'More magic to come', subtitle: 'A new chapter begins this Christmas.' },
 ]
 
-function Sparkle({ size = 18 }: { size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 1.5c.7 6.6 3.9 9.8 10.5 10.5-6.6.7-9.8 3.9-10.5 10.5C11.3 15.9 8.1 12.7 1.5 12 8.1 11.3 11.3 8.1 12 1.5Z" fill="currentColor"/></svg>
+const flakes = Array.from({ length: 66 }, (_, i) => ({
+  left: ((i * 73 + 17) % 101) + '%',
+  delay: (-((i * 41) % 127) / 10) + 's',
+  duration: (8 + (i % 11) * 1.25) + 's',
+  size: (i % 9 === 0 ? 6 : i % 3 === 0 ? 3.5 : 2) + 'px',
+  drift: (((i * 19) % 70) - 35) + 'px',
+  opacity: .25 + ((i * 13) % 35) / 65,
+  front: i % 7 === 0,
+}))
+
+function Star({ size = 22 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+    <path d="M12 0c.9 7.3 4.7 11.1 12 12-7.3.9-11.1 4.7-12 12C11.1 16.7 7.3 12.9 0 12 7.3 11.1 11.1 7.3 12 0Z" />
+  </svg>
+}
+function Garland() {
+  const needles = Array.from({ length: 23 }, (_, i) => ({ x: 4 + i * 18, y: 34 + Math.sin(i / 3) * 11 }))
+  return <svg className="gs5-garland" viewBox="0 0 430 110" aria-hidden="true" preserveAspectRatio="xMidYMin slice">
+    <defs>
+      <linearGradient id="gs5-needle" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#477659"/><stop offset="1" stopColor="#133e30"/></linearGradient>
+      <radialGradient id="gs5-bulb"><stop stopColor="#fff4cb"/><stop offset=".4" stopColor="#f5c46d"/><stop offset="1" stopColor="#c77d32"/></radialGradient>
+    </defs>
+    <path d="M-15 24 Q100 73 220 45 Q325 20 445 36" stroke="#325441" strokeWidth="11" fill="none"/>
+    <path d="M-15 19 Q100 67 220 41 Q325 16 445 32" stroke="#54765a" strokeWidth="2" fill="none"/>
+    {needles.map((v, i) => <g key={i} transform={'translate(' + v.x + ' ' + v.y + ') rotate(' + (i < 12 ? 14 : -8) + ')'}>
+      <path d="M0 0 Q-27 -8 -36 -33 Q-11 -27 6 -3" fill="url(#gs5-needle)"/>
+      <path d="M0 0 Q-23 9 -27 29 Q-6 19 7 2" fill="#244c38"/>
+      <path d="M0 0 Q15 -22 26 -25 Q25 -5 8 5" fill="#2b593f"/>
+    </g>)}
+    {[34,103,173,244,309,377].map((x,i) => <g key={x}>
+      <path d={'M' + x + ' 40 v' + (16 + i % 3 * 4)} stroke="#d9b97d" strokeWidth="1"/>
+      <circle cx={x} cy={62 + i % 3 * 4} r={i % 2 ? 4 : 5.2} fill="url(#gs5-bulb)" className="gs5-fairy-light"/>
+    </g>)}
+    <circle cx="367" cy="47" r="16" fill="#8c2434" stroke="#d7ab6c" strokeWidth="1.5"/>
+    <path d="M367 49l3 6-3-2-3 2 3-6" fill="#efcc91"/>
+  </svg>
 }
 
-function App() {
-  const [scene, setScene] = useState<Scene>('gift')
-  const [opening, setOpening] = useState(false)
-  const [openingPhase, setOpeningPhase] = useState<OpeningPhase>('idle')
-  const openingTimers = useRef<number[]>([])
-  const touchStart = useRef<{ x: number; y: number } | null>(null)
-  const [studioOpen, setStudioOpen] = useState(false)
-  const [recipient, setRecipient] = useState('Someone special')
-  const [sender, setSender] = useState('With all my love')
-  const [message, setMessage] = useState('Some gifts are wrapped in ribbons. The most precious ones are wrapped in memories. May this Christmas remind you how deeply you are loved.')
-  const [photos, setPhotos] = useState<Photo[]>([])
-  const [video, setVideo] = useState<Photo | null>(null)
-  const [memoryIndex, setMemoryIndex] = useState(0)
-  const [formMessage, setFormMessage] = useState('')
+function Snowfall() {
+  return <div className="gs5-snow" aria-hidden="true">
+    {flakes.map((f,i) => <span key={i} className={f.front ? 'gs5-snow-near' : 'gs5-snow-far'}
+      style={{ left:f.left,animationDelay:f.delay,animationDuration:f.duration,width:f.size,height:f.size,
+        opacity:f.opacity,'--drift':f.drift } as CSSProperties}/>)}
+  </div>
+}
+
+function WinterMemoryArt({ variant = 0 }: { variant?: number }) {
+  return <svg className="gs5-memory-art" viewBox="0 0 300 390" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustrated snowy Christmas evening with a lit cabin and evergreen trees">
+    <defs>
+      <linearGradient id="gs5-sky" x1="0" y1="0" x2="0" y2="1"><stop stopColor={variant===1 ? '#203b55' : '#153e4a'}/><stop offset=".8" stopColor={variant===2?'#674046':'#46646b'}/><stop offset="1" stopColor="#b59a80"/></linearGradient>
+      <radialGradient id="gs5-house-light"><stop stopColor="#ffefb7"/><stop offset=".7" stopColor="#d9984b"/><stop offset="1" stopColor="#9d5e35"/></radialGradient>
+    </defs>
+    <rect width="300" height="390" fill="url(#gs5-sky)" />
+    <circle cx="228" cy="78" r="30" fill="#fff0cf" opacity=".85"/>
+    <circle cx="228" cy="78" r="48" fill="#fff0cf" opacity=".1"/>
+    {[30,62,104,160,203,254,286].map((x,i)=><g key={x} transform={'translate(' + x + ' ' + (204+i%3*12) + ')'}>
+      <path d="M0 -112 L-41 0 H41Z" fill={i%2 ? '#122f32' : '#173e3b'}/>
+      <path d="M0 -99 L-31 -15 M0 -69 L28 -8" stroke="#e3eeea" strokeWidth="3" opacity=".58"/>
+      <path d="M-33 -20 L0 -91 L34 -19" fill="none" stroke="#e8ede6" strokeWidth="2.4" opacity=".75"/>
+      <rect x="-5" y="-10" width="10" height="34" fill="#2d2923"/>
+    </g>)}
+    <path d="M0 235 Q58 205 111 233 Q179 204 300 241V390H0Z" fill="#b4cfca"/>
+    <path d="M0 278 Q80 252 161 278 Q235 248 300 278V390H0Z" fill="#edf1e5"/>
+    <g transform="translate(88 194)">
+      <rect x="0" y="30" width="131" height="110" fill="#6e3430"/>
+      <path d="M-17 35 L63 -12 L151 35Z" fill="#423533"/>
+      <path d="M-10 34 L63 -10 L144 34" fill="none" stroke="#f3f2e7" strokeWidth="9" strokeLinejoin="round"/>
+      <rect x="18" y="57" width="35" height="38" fill="url(#gs5-house-light)"/>
+      <rect x="76" y="57" width="36" height="38" fill="url(#gs5-house-light)"/>
+      <path d="M35 56V96 M18 75H53 M94 56V96 M76 75H112" stroke="#5e362a" strokeWidth="4"/>
+      <rect x="55" y="99" width="26" height="41" fill="#3b2828"/>
+      <rect x="103" y="-15" width="14" height="36" fill="#634238"/>
+      <path d="M103 -13 L102 -21 L120 -21 L117 -13" fill="#e7e9de"/>
+    </g>
+    <g transform="translate(35 243)">
+      <path d="M0 -98 L-35 -11 H35Z" fill="#173b30"/>
+      <path d="M0 -74 L-27 -1 H27Z" fill="#215240"/>
+      <path d="M0 -50 L-31 24 H31Z" fill="#1d4b3a"/>
+      {[[-2,-51],[8,-29],[-13,-16],[15,7],[-2,3],[5,-70]].map((p,i) =>
+        <circle key={i} cx={p[0]} cy={p[1]} r="3.4" fill={i%2?'#e8b65f':'#b52b3f'}/>)}
+      <path d="M0 -106 L3 -98 L11 -97 L5 -91 L7 -83 L0 -88 L-7 -83 L-5 -91 L-11 -97 L-3 -98Z" fill="#fce5a8"/>
+    </g>
+    {Array.from({length:38},(_,i)=><circle key={i} cx={(i*61+13)%300} cy={(i*47+11)%390} r={i%5===0?2:1.1} fill="#fffcf3" opacity={.45+i%4*.12}/>)}
+    <path d="M0 350 Q100 316 185 346 Q244 328 300 341V390H0Z" fill="#fbf7ed"/>
+  </svg>
+}
+
+export default function GlowSurprise() {
+  const [scene,setScene] = useState<Scene>('gift')
+  const [phase,setPhase] = useState<OpeningPhase>('ready')
+  const [editorOpen,setEditorOpen] = useState(false)
+  const [recipient,setRecipient] = useState('Someone special')
+  const [sender,setSender] = useState('With all my love')
+  const [message,setMessage] = useState('Of all the moments this year, my favourites have you in them. Wishing you a Christmas as beautiful as the memories we share.')
+  const [photos,setPhotos] = useState<Uploaded[]>([])
+  const [video,setVideo] = useState<Uploaded | null>(null)
+  const [memoryIndex,setMemoryIndex] = useState(0)
+  const [feedback,setFeedback] = useState('')
   const photoInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
-  const objectUrls = useRef<Set<string>>(new Set())
-  const makeUrl = (file: File) => {
+  const mediaUrls = useRef<Set<string>>(new Set())
+  const timers = useRef<number[]>([])
+  const swipeX = useRef<{x:number;y:number}|null>(null)
+  const memories:Memory[] = useMemo(()=>[
+    ...photos.map(p=>({kind:'image' as const,url:p.url,name:p.name})),
+    ...(video ? [{kind:'video' as const,url:video.url,name:video.name}] : []),
+  ],[photos,video])
+  const total = memories.length || demoStories.length
+  const active = ((memoryIndex%total)+total)%total
+  const demo = !memories.length
+
+  useEffect(()=>{
+    const urls = mediaUrls.current
+    return ()=>{timers.current.forEach(clearTimeout);urls.forEach(URL.revokeObjectURL);urls.clear()}
+  },[])
+
+  function newUrl(file:File) {
     const url = URL.createObjectURL(file)
-    objectUrls.current.add(url)
+    mediaUrls.current.add(url)
     return url
   }
-  const discardUrl = (url: string) => {
+  function discard(url:string) {
     URL.revokeObjectURL(url)
-    objectUrls.current.delete(url)
+    mediaUrls.current.delete(url)
   }
-  const memories: Memory[] = useMemo(() => [
-    ...photos.map((p) => ({ kind: 'image' as const, url: p.url, label: p.name })),
-    ...(video ? [{ kind: 'video' as const, url: video.url, label: video.name }] : []),
-  ], [photos, video])
-  const hasMemories = memories.length > 0
-  const totalMoments = hasMemories ? memories.length : demoMoments.length
-  const activeMoment = ((memoryIndex % totalMoments) + totalMoments) % totalMoments
-
-  useEffect(() => {
-    const urls = objectUrls.current
-    return () => { urls.forEach((url) => URL.revokeObjectURL(url)); urls.clear() }
-  }, [])
-
-  const handlePhotos = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? [])
-    if (!files.length) return
-    const valid = files.filter((file) => file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024).slice(0, 10)
-    if (!valid.length) {
-      setFormMessage('Choose images smaller than 10 MB each.')
+  function handlePhotos(event:ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files || [])
+    if(!selected.length) return
+    const valid = selected.filter(f=>f.type.startsWith('image/') && f.size<=10*1024*1024).slice(0,10)
+    if(!valid.length) {setFeedback('Please choose photos smaller than 10 MB each.');return}
+    photos.forEach(p=>discard(p.url))
+    setPhotos(valid.map(f=>({url:newUrl(f),name:f.name})))
+    setMemoryIndex(0)
+    setFeedback(valid.length < selected.length ? 'Some files were skipped. You can use up to 10 photos.' : 'Your photos are ready to preview.')
+    event.target.value=''
+  }
+  function handleVideo(event:ChangeEvent<HTMLInputElement>) {
+    const file=event.target.files?.[0]
+    if(!file)return
+    if(!file.type.startsWith('video/') || file.size>20*1024*1024){
+      setFeedback('Please choose one video under 20 MB.')
       return
     }
-    photos.forEach((photo) => discardUrl(photo.url))
-    setPhotos(valid.map((file) => ({ url: makeUrl(file), name: file.name })))
+    if(video)discard(video.url)
+    setVideo({url:newUrl(file),name:file.name})
     setMemoryIndex(0)
-    setFormMessage(valid.length < files.length ? 'Some files were skipped. You can add up to 10 photos, 10 MB each.' : 'Photos loaded in your browser preview.')
-    event.target.value = ''
+    setFeedback('Your video is ready to preview.')
+    event.target.value=''
+  }
+  function unwrap() {
+    if(phase!=='ready')return
+    timers.current.forEach(clearTimeout)
+    timers.current=[]
+    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if(reduced){setPhase('reveal');return}
+    setPhase('untie')
+    timers.current.push(window.setTimeout(()=>setPhase('ribbons'),1250))
+    timers.current.push(window.setTimeout(()=>setPhase('lid'),2400))
+    timers.current.push(window.setTimeout(()=>setPhase('reveal'),3700))
+  }
+  function restart(){
+    timers.current.forEach(clearTimeout);timers.current=[]
+    setMemoryIndex(0);setPhase('ready');setScene('gift')
+    window.scrollTo({top:0,behavior:'smooth'})
+  }
+  function go(next:Scene){setScene(next);window.scrollTo({top:0,behavior:'smooth'})}
+  function touchStart(e:TouchEvent<HTMLElement>){const t=e.changedTouches[0];if(t)swipeX.current={x:t.clientX,y:t.clientY}}
+  function touchEnd(e:TouchEvent<HTMLElement>){
+    const t=e.changedTouches[0],p=swipeX.current;swipeX.current=null
+    if(!t||!p)return
+    const dx=t.clientX-p.x,dy=t.clientY-p.y
+    if(Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.1)return
+    setMemoryIndex(x=>(x+(dx<0?1:total-1))%total)
   }
 
-  const handleVideo = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('video/') || file.size > 20 * 1024 * 1024) {
-      setFormMessage('Choose a video smaller than 20 MB.')
-      return
-    }
-    if (video) discardUrl(video.url)
-    setVideo({ url: makeUrl(file), name: file.name })
-    setMemoryIndex(0)
-    setFormMessage('Video added to your browser preview.')
-    event.target.value = ''
-  }
-
-  // Cinematic choreography: the actual silk bow loosens, the wrap peels away,
-  // the lid opens and the letter rises. Keep every beat visible before scene change.
-  const unwrap = () => {
-    if (opening) return
-    setOpening(true)
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    if (reduced) {
-      setOpeningPhase('reveal')
-      openingTimers.current.push(window.setTimeout(() => {
-        setScene('letter')
-        setOpening(false)
-        setOpeningPhase('idle')
-      }, 450))
-      return
-    }
-    setOpeningPhase('untie')
-    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('ribbons'), 900))
-    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('lift'), 1700))
-    openingTimers.current.push(window.setTimeout(() => setOpeningPhase('reveal'), 2870))
-    openingTimers.current.push(window.setTimeout(() => {
-      setScene('letter')
-      setOpening(false)
-      setOpeningPhase('idle')
-    }, 4520))
-  }
-
-  useEffect(() => () => { openingTimers.current.forEach(window.clearTimeout) }, [])
-
-  const restart = () => {
-    openingTimers.current.forEach(window.clearTimeout)
-    openingTimers.current = []
-    setMemoryIndex(0)
-    setOpening(false)
-    setOpeningPhase('idle')
-    setScene('gift')
-  }
-
-  const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    const touch = event.changedTouches[0]
-    if (touch) touchStart.current = { x: touch.clientX, y: touch.clientY }
-  }
-
-  const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
-    const touch = event.changedTouches[0]
-    const start = touchStart.current
-    touchStart.current = null
-    if (!touch || !start) return
-    const dx = touch.clientX - start.x
-    const dy = touch.clientY - start.y
-    if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.3) return
-    setMemoryIndex((index) => (index + (dx < 0 ? 1 : totalMoments - 1)) % totalMoments)
-  }
-
-  const navigate = (next: Scene) => {
-    setScene(next)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  return (
-    <div className="gs-app">
-      <div className="gs-halo gs-halo-a" aria-hidden="true" />
-      <div className="gs-halo gs-halo-b" aria-hidden="true" />
-      <div className="gs-stars" aria-hidden="true">
-        {snow.map((s, i) => <i key={i} style={{ left: s.left, animationDelay: s.delay, animationDuration: s.duration, width: s.size, height: s.size, opacity: s.opacity } as CSSProperties} />)}
-      </div>
-
-      <header className="gs-header">
-        <button type="button" className="gs-wordmark" onClick={restart} aria-label="GlowSurprise home">
-          <span className="gs-mark"><Sparkle size={19} /></span>
-          <span>GLOW<span className="gs-wordmark-thin">SURPRISE</span><span className="gs-tm">™</span></span>
-        </button>
-        <button className="gs-studio-link" onClick={() => setStudioOpen(true)} type="button">
-          <span className="gs-studio-link-icon">✦</span> Personalize <span className="gs-studio-arrow">↗</span>
-        </button>
-      </header>
-
-      <main className="gs-main">
-        <div className="gs-side-rule gs-left-rule" aria-hidden="true" />
-        <div className="gs-side-rule gs-right-rule" aria-hidden="true" />
-        <AnimatePresence mode="wait">
-          {scene === 'gift' && (
-            <motion.section
-              key="gift"
-              className="gs-scene gs3-hero"
-              initial={{ y: 18, scale: 0.98 }}
-              animate={{ y: 0, scale: 1 }}
-              exit={{ y: -60, scale: 1.04, filter: 'brightness(1.25)' }}
-              transition={{ duration: 0.7, ease: [0.19, 0.8, 0.26, 1] }}
-              aria-label="Your Christmas surprise"
-            >
-              <div className="gs3-portrait">
-                <div className="gs3-portrait-top">
-                  <span className="gs3-ornament" aria-hidden="true">✦</span>
-                  <p className="gs3-kicker">GLOWSURPRISE · THE CHRISTMAS EDITION</p>
-                  <h1 className="gs3-hero-headline">More than a gift. <em>A feeling.</em></h1>
-                  <p className="gs3-hero-description">A personal message, your favourite memories and a little Christmas magic to unwrap.</p>
+  return <div className="gs5-app">
+    <div className="gs5-ambient gs5-ambient-one" aria-hidden="true"/>
+    <div className="gs5-ambient gs5-ambient-two" aria-hidden="true"/>
+    <Snowfall/>
+    <header className="gs5-header">
+      <button type="button" onClick={restart} className="gs5-logo" aria-label="GlowSurprise home">
+        <span className="gs5-logo-icon"><Star size={16}/></span><span>GLOW<b>SURPRISE</b></span>
+      </button>
+      <button type="button" className="gs5-top-action" onClick={()=>setEditorOpen(true)}>Personalize <span aria-hidden="true">↗</span></button>
+    </header>
+    <main className="gs5-main">
+      <AnimatePresence mode="wait">
+        {scene==='gift' && <motion.section key="gift" className="gs5-experience gs5-opening" initial={{y:25,scale:.98}} animate={{y:0,scale:1}} exit={{y:-40,scale:1.05}} transition={{duration:.6,ease:[.16,.75,.2,1]}}>
+          <div className="gs5-world">
+            <Garland/>
+            <div className="gs5-world-top">
+              <p className="gs5-eyebrow">A CHRISTMAS SURPRISE · MADE PERSONAL</p>
+              <h1>Some gifts are<br/><em>unforgettable.</em></h1>
+              <p className="gs5-opening-lead">A little Christmas magic, made just for you.</p>
+            </div>
+            <div className="gs5-world-middle">
+              <div className="gs5-bauble gs5-bauble-left" aria-hidden="true"/><div className="gs5-bauble gs5-bauble-right" aria-hidden="true"/>
+              <PremiumGiftBox phase={phase} onOpen={unwrap} photoUrl={photos[0]?.url}/>
+            </div>
+            <div className="gs5-world-bottom">
+              <div className="gs5-tiny-divider"><span/>✦<span/></div>
+              <button type="button" className="gs5-primary" onClick={()=>phase==='reveal'?go('letter'):unwrap()} disabled={phase!=='ready' && phase!=='reveal'}>
+                {phase==='ready'?'Unwrap your surprise':phase==='reveal'?'Open your Christmas card':'Unwrapping your present…'}
+                <span aria-hidden="true">↗</span>
+              </button>
+              <p className="gs5-quiet">Made with love, shared with a little glow.</p>
+            </div>
+          </div>
+        </motion.section>}
+        {scene==='letter' && <motion.section key="letter" className="gs5-experience gs5-letter-scene" initial={{y:125,rotateX:-14,scale:.88}} animate={{y:0,rotateX:0,scale:1}} exit={{y:-80,scale:.96}} transition={{duration:.9,ease:[.14,.8,.17,1]}}>
+          <p className="gs5-eyebrow">A LETTER FROM THE HEART</p>
+          <div className="gs5-letter-wrap">
+            <div className="gs5-letter-corners"/>
+            <Star size={22}/>
+            <span className="gs5-letter-edition">CHRISTMAS EDITION · 2026</span>
+            <span className="gs5-letter-for">Especially for</span>
+            <h2>{recipient.trim()||'Someone special'}</h2>
+            <div className="gs5-letter-flourish">✦</div>
+            <p className="gs5-letter-message">{message.trim()||'A little Christmas love, made just for you.'}</p>
+            <p className="gs5-letter-from">{sender.trim()||'With love'}</p>
+            <span className="gs5-letter-mark">GLOW SURPRISE · BY GLOWBAUBLE</span>
+          </div>
+          <button className="gs5-primary" type="button" onClick={()=>go('memories')}>Discover your memories <span aria-hidden="true">↗</span></button>
+          <button className="gs5-subtle-action" type="button" onClick={()=>setEditorOpen(true)}>Personalize this message</button>
+        </motion.section>}
+        {scene==='memories' && <motion.section key="memories" className="gs5-experience gs5-memories-scene" initial={{y:65,scale:.95}} animate={{y:0,scale:1}} exit={{y:-50,scale:1.03}} transition={{duration:.7,ease:[.16,.75,.2,1]}}>
+          <p className="gs5-eyebrow">OUR LITTLE TREASURES</p>
+          <h2 className="gs5-section-title">The memories<br/><em>that glow.</em></h2>
+          <p className="gs5-section-deck">{demo?'This is where your favourite photos and videos become the gift.':'The little moments that make everything worthwhile.'}</p>
+          <div className="gs5-album" onTouchStart={touchStart} onTouchEnd={touchEnd}>
+            <div className="gs5-album-back gs5-album-back-one"/>
+            <div className="gs5-album-back gs5-album-back-two"/>
+            <AnimatePresence mode="wait">
+              <motion.div key={demo?'demo'+active:'real'+active} className="gs5-polaroid"
+                initial={{x:95,rotate:9,scale:.93}} animate={{x:0,rotate:-2,scale:1}}
+                exit={{x:-95,rotate:-9,scale:.93}} transition={{duration:.57,ease:[.2,.72,.2,1]}}>
+                <div className="gs5-photo-window">
+                  {demo ? <WinterMemoryArt variant={active}/> : memories[active].kind==='image' ? <>
+                    <div className="gs5-photo-blur" style={{backgroundImage:'url("'+memories[active].url+'")'}} aria-hidden="true"/>
+                    <img src={memories[active].url} alt={'Personal memory '+(active+1)}/>
+                  </> : <video src={memories[active].url} controls playsInline preload="metadata" aria-label="Personal memory video"/>}
+                  <span className="gs5-photo-counter">{String(active+1).padStart(2,'0')} / {String(total).padStart(2,'0')}</span>
                 </div>
-                <PremiumGiftBox phase={openingPhase} onOpen={unwrap} />
-                <div className="gs3-footer-actions">
-                  <p className="gs3-tap-cue">GLOW SURPRISE · THE DIGITAL GIFT</p>
-                  <button className="gs-primary-button" type="button" onClick={unwrap} disabled={opening}>
-                    {opening ? 'Your gift is opening…' : 'Unwrap your surprise'}
-                    <span aria-hidden="true">✧</span>
-                  </button>
-                  <p className="gs3-footer-note">A beautiful extra for your GlowBauble gift.</p>
+                <div className="gs5-polaroid-bottom">
+                  <span className="gs5-polaroid-caption">{demo?demoStories[active].title:'A moment worth keeping'}</span>
+                  <span className="gs5-polaroid-star">✧</span>
                 </div>
-              </div>
-            </motion.section>
-          )}
-          {scene === 'letter' && (
-            <motion.section key="letter" className="gs-scene gs-letter-scene gs2-letter-scene gs3-letter-scene" initial={{ y: 105, rotateX: -22, scale: 0.88 }} animate={{ y: 0, rotateX: 0, scale: 1 }} exit={{ y: -70, rotateX: 9, scale: 0.93 }} transition={{ duration: 0.9, ease: [0.17, 0.8, 0.2, 1] }}>
-              <p className="gs-eyebrow"><span className="gs-line" /> A NOTE FROM THE HEART <span className="gs-line" /></p>
-              <div className="gs-letter-backlight" aria-hidden="true" />
-              <div className="gs-letter-sheet">
-                <div className="gs-letter-corners" />
-                <div className="gs-letter-symbol"><Sparkle size={24} /></div>
-                <p className="gs-letter-small">THIS CHRISTMAS, WITH LOVE</p>
-                <p className="gs-letter-for">For</p>
-                <h2 className="gs-letter-name">{recipient || 'Someone special'}</h2>
-                <div className="gs-letter-divider"><span /><Sparkle size={13}/><span /></div>
-                <p className="gs-letter-message">{message || 'A Christmas surprise, made with love.'}</p>
-                <p className="gs-letter-sign">{sender || 'With love'}</p>
-                <div className="gs-letter-bottom">GLOW SURPRISE <span>✦</span> CHRISTMAS EDITION</div>
-              </div>
-              <button type="button" className="gs-primary-button" onClick={() => navigate('memories')}>Discover your memories <span aria-hidden="true">↗</span></button>
-              <button type="button" className="gs-text-button" onClick={() => setStudioOpen(true)}>Edit this message</button>
-            </motion.section>
-          )}
-          {scene === 'memories' && (
-            <motion.section key="memories" className="gs-scene gs-memory-scene gs2-memory-scene gs3-memory-scene" initial={{ opacity: 0.3, y: 80, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -50, scale: 0.98 }} transition={{ duration: 0.85, ease: [0.17, 0.8, 0.2, 1] }}>
-              <p className="gs-eyebrow"><span className="gs-line" /> OUR MOST TREASURED THINGS <span className="gs-line" /></p>
-              <h2 className="gs-memory-title">The moments that <em>glow.</em></h2>
-              <p className="gs-memory-intro">{hasMemories ? 'Every memory deserves a little magic.' : 'A beautiful place for your own photos, videos and stories.'}</p>
-              <div
-                className="gs2-memory-frame"
-                onTouchStart={onTouchStart}
-                onTouchEnd={onTouchEnd}
-                aria-label="Memories, swipe left or right to explore"
-              >
-                <div className="gs2-memory-inner">
-                  <AnimatePresence mode="wait">
-                    {hasMemories ? (
-                      <motion.div
-                        key={'memory-' + activeMoment}
-                        className="gs2-memory-content"
-                        initial={{ opacity: 0.4, x: 34, scale: 1.03 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: -34, scale: 0.98 }}
-                        transition={{ duration: 0.48, ease: [0.2, 0.75, 0.24, 1] }}
-                      >
-                        {memories[activeMoment].kind === 'image' ? (
-                          <>
-                            <div className="gs2-memory-backdrop" style={{ backgroundImage: `url("${memories[activeMoment].url}")` }} aria-hidden="true" />
-                            <img src={memories[activeMoment].url} alt={'Your memory ' + (activeMoment + 1)} />
-                          </>
-                        ) : (
-                          <video controls playsInline preload="metadata" src={memories[activeMoment].url} aria-label="Your uploaded video" />
-                        )}
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key={'demo-' + activeMoment}
-                        className="gs-memory-placeholder gs2-memory-placeholder"
-                        initial={{ opacity: 0.3, x: 26, scale: 1.04 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: -26, scale: 0.97 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <div className="gs-memory-ring"><Sparkle size={36}/></div>
-                        <span className="gs-moment-number">MOMENT {demoMoments[activeMoment].index}</span>
-                        <h3>{demoMoments[activeMoment].title}</h3>
-                        <p>{demoMoments[activeMoment].detail}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <div className="gs2-story-badge">GLOW SURPRISE · CHRISTMAS 2026</div>
-                  {hasMemories && <div className="gs2-memory-caption">Our favourite memories, together.</div>}
-                </div>
-              </div>
-              <p className="gs2-frame-hint">SWIPE TO EXPLORE · EVERY MEMORY MATTERS</p>
-              <div className="gs-memory-controls">
-                <button type="button" onClick={() => setMemoryIndex((i) => (i - 1 + totalMoments) % totalMoments)} aria-label="Previous memory">←</button>
-                <span>{String(activeMoment + 1).padStart(2, '0')} <span className="gs-controls-slash">/</span> {String(totalMoments).padStart(2, '0')}</span>
-                <button type="button" onClick={() => setMemoryIndex((i) => (i + 1) % totalMoments)} aria-label="Next memory">→</button>
-              </div>
-              {!hasMemories && <button type="button" className="gs-text-button" onClick={() => setStudioOpen(true)}>Add your own memories</button>}
-              <button type="button" className="gs-primary-button" onClick={() => navigate('final')}>One last little surprise <span aria-hidden="true">✧</span></button>
-            </motion.section>
-          )}
-          {scene === 'final' && (
-            <motion.section key="final" className="gs-scene gs-finale-scene gs2-finale-scene gs3-finale-scene" initial={{ opacity: 0.2, scale: 0.86, y: 85 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 1.08 }} transition={{ duration: 1.1, ease: [0.16, 0.8, 0.2, 1] }}>
-              <div className="gs-finale-wreath" aria-hidden="true"><Sparkle size={60}/></div>
-              <p className="gs-eyebrow"><span className="gs-line" /> FROM MY HEART TO YOURS <span className="gs-line" /></p>
-              <h2 className="gs-finale-heading">The best gifts <em>stay with us.</em></h2>
-              <p className="gs-finale-copy">May the warmth of these memories follow you long after the Christmas lights come down.</p>
-              <span className="gs-finale-love">{sender || 'With love'}</span>
-              <div className="gs-finale-actions">
-                <button type="button" className="gs-primary-button" onClick={restart}>Experience it again <span aria-hidden="true">↺</span></button>
-                <button type="button" className="gs-text-button" onClick={() => setStudioOpen(true)}>Make it personal</button>
-              </div>
-              <p className="gs-demo-note">Demo only · A shareable private link will be available in the full product.</p>
-            </motion.section>
-          )}
-        </AnimatePresence>
-      </main>
-
-      <footer className="gs-footer">
-        <span>GLOW SURPRISE <span className="gs-footer-divider">✦</span> BY GLOWBAUBLE</span>
-        <span>CHRISTMAS COLLECTION 2026</span>
-      </footer>
-
-      <AnimatePresence>
-        {studioOpen && (
-          <motion.div className="gs-studio-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(e) => { if (e.target === e.currentTarget) setStudioOpen(false) }}>
-            <motion.aside className="gs-studio-panel" role="dialog" aria-modal="true" aria-labelledby="gs-studio-title" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', stiffness: 220, damping: 27 }}>
-              <div className="gs-studio-header">
-                <div><p className="gs-studio-kicker">THE PERSONALIZATION STUDIO</p><h2 id="gs-studio-title">Make it <em>yours.</em></h2></div>
-                <button type="button" onClick={() => setStudioOpen(false)} aria-label="Close editor">✕</button>
-              </div>
-              <p className="gs-studio-description">A few thoughtful details turn a beautiful gesture into something unforgettable.</p>
-              <label className="gs-field"><span>WHO IS THIS FOR?</span><input value={recipient} onChange={(e) => setRecipient(e.target.value.slice(0, 45))} placeholder="Their name" maxLength={45}/></label>
-              <label className="gs-field"><span>FROM</span><input value={sender} onChange={(e) => setSender(e.target.value.slice(0, 55))} placeholder="Your name" maxLength={55}/></label>
-              <label className="gs-field"><span>YOUR PERSONAL MESSAGE</span><textarea rows={5} value={message} onChange={(e) => setMessage(e.target.value.slice(0, 450))} maxLength={450}/><small>{message.length}/450 characters</small></label>
-              <div className="gs-studio-upload">
-                <p className="gs-field-heading">YOUR FAVOURITE MEMORIES</p>
-                <input ref={photoInput} type="file" multiple accept="image/*" onChange={handlePhotos} hidden/>
-                <input ref={videoInput} type="file" accept="video/*" onChange={handleVideo} hidden/>
-                <button type="button" onClick={() => photoInput.current?.click()}><span>＋</span> {photos.length ? 'Replace photos' : 'Add photos'} <small>Up to 10 · 10 MB each</small></button>
-                <button type="button" onClick={() => videoInput.current?.click()}><span>▻</span> {video ? 'Replace video' : 'Add a video'} <small>1 video · 20 MB max</small></button>
-                {(photos.length > 0 || video) && <p className="gs-upload-count">{photos.length} photo{photos.length === 1 ? '' : 's'} {video ? '· 1 video' : ''} loaded</p>}
-                {formMessage && <p className="gs-upload-notice" role="status">{formMessage}</p>}
-              </div>
-              <div className="gs-studio-bottom">
-                <p>PRIVATE PREVIEW · Files stay in this browser session and are not uploaded or saved.</p>
-                <button type="button" className="gs-primary-button" onClick={() => { setStudioOpen(false); restart() }}>Preview my surprise <span aria-hidden="true">↗</span></button>
-              </div>
-            </motion.aside>
-          </motion.div>
-        )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          <div className="gs5-album-controls">
+            <button type="button" onClick={()=>setMemoryIndex(i=>(i+total-1)%total)} aria-label="Previous memory">←</button>
+            <div className="gs5-progress" aria-label={'Memory '+(active+1)+' of '+total}>{Array.from({length:total},(_,i)=><i key={i} className={i===active?'active':''}/>)}</div>
+            <button type="button" onClick={()=>setMemoryIndex(i=>(i+1)%total)} aria-label="Next memory">→</button>
+          </div>
+          {demo&&<button type="button" className="gs5-subtle-action" onClick={()=>setEditorOpen(true)}>Add your own photos & videos</button>}
+          <button type="button" className="gs5-primary" onClick={()=>go('final')}>One last little surprise <span aria-hidden="true">↗</span></button>
+        </motion.section>}
+        {scene==='final'&&<motion.section key="final" className="gs5-experience gs5-finale" initial={{y:80,scale:.89}} animate={{y:0,scale:1}} exit={{y:-50}} transition={{duration:.85}}>
+          <Garland/>
+          <div className="gs5-finale-wreath"><span>✧</span></div>
+          <p className="gs5-eyebrow">FROM MY HEART TO YOURS</p>
+          <h2>The most beautiful gifts<br/><em>stay with us.</em></h2>
+          <p>Some memories don't belong in a box. They live in the people we love.</p>
+          <span className="gs5-signature">{sender.trim()||'With love'}</span>
+          <button type="button" className="gs5-primary" onClick={restart}>Experience the magic again <span aria-hidden="true">↺</span></button>
+          <button type="button" className="gs5-subtle-action" onClick={()=>setEditorOpen(true)}>Make yours personal</button>
+          <small className="gs5-demo-disclaimer">Demo preview only · Sharing and permanent saving come with the complete product.</small>
+        </motion.section>}
       </AnimatePresence>
-    </div>
-  )
+    </main>
+    <footer className="gs5-footer"><span>GLOWSURPRISE · BY GLOWBAUBLE</span><span>CHRISTMAS 2026</span></footer>
+    <AnimatePresence>
+      {editorOpen&&<motion.div className="gs5-editor-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+        onMouseDown={e=>{if(e.currentTarget===e.target)setEditorOpen(false)}}>
+        <motion.aside className="gs5-editor" role="dialog" aria-modal="true" aria-labelledby="gs5-editor-title"
+          initial={{x:'100%'}} animate={{x:0}} exit={{x:'100%'}} transition={{type:'spring',stiffness:240,damping:31}}>
+          <div className="gs5-editor-header"><div><span>THE GLOWSURPRISE STUDIO</span><h2 id="gs5-editor-title">Make it <em>personal.</em></h2></div>
+            <button type="button" aria-label="Close editor" onClick={()=>setEditorOpen(false)}>✕</button></div>
+          <p className="gs5-editor-lead">The best gift is a little piece of your story. Add yours and preview it instantly.</p>
+          <label className="gs5-field">For<input maxLength={45} value={recipient} onChange={e=>setRecipient(e.target.value)} placeholder="Recipient's name"/></label>
+          <label className="gs5-field">From<input maxLength={55} value={sender} onChange={e=>setSender(e.target.value)} placeholder="Your name"/></label>
+          <label className="gs5-field">Your Christmas message<textarea rows={5} maxLength={450} value={message} onChange={e=>setMessage(e.target.value)}/><small>{message.length}/450</small></label>
+          <div className="gs5-media-picker">
+            <p>YOUR FAVOURITE MEMORIES</p>
+            <input type="file" accept="image/*" multiple hidden ref={photoInput} onChange={handlePhotos}/>
+            <input type="file" accept="video/*" hidden ref={videoInput} onChange={handleVideo}/>
+            <button type="button" onClick={()=>photoInput.current?.click()}>＋ <span>{photos.length?'Change photos':'Add photos'} <small>Up to 10 · 10MB each</small></span></button>
+            <button type="button" onClick={()=>videoInput.current?.click()}>▷ <span>{video?'Change video':'Add a video'} <small>One video · up to 20MB</small></span></button>
+            <p className="gs5-media-summary">{photos.length} photos {video?' · 1 video':''}</p>
+            {feedback&&<p className="gs5-feedback" role="status">{feedback}</p>}
+          </div>
+          <div className="gs5-editor-end">
+            <p>Private browser preview. Your files are not uploaded or saved to a server.</p>
+            <button type="button" className="gs5-primary" onClick={()=>{setEditorOpen(false);restart()}}>Preview my GlowSurprise <span aria-hidden="true">↗</span></button>
+          </div>
+        </motion.aside>
+      </motion.div>}
+    </AnimatePresence>
+  </div>
 }
-
-export default App
